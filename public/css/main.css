@@ -1,0 +1,24 @@
+body{
+    height: 100%;
+}
+
+.container {
+    display: grid;
+    grid-template-columns: 60% 35%;
+    gap: 5%;
+    height: 100%;
+    padding: 25px;
+}
+
+.left{
+    display: grid;
+    place-items: center;
+    padding: 10px;
+    border: 1px solid black;
+}
+
+.right{
+    border: 1px solid black;
+    overflow: scroll;
+    display: grid;
+}
