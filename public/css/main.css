@@ -17,6 +17,10 @@ body{
     border: 1px solid black;
 }
 
+#videoElem{
+    transform: scaleX(-1);
+}
+
 .right{
     border: 1px solid black;
     overflow: scroll;
