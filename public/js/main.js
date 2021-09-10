@@ -20,11 +20,11 @@ addLog = (data) => {
 async function run() {
     addLog("Auth started");
     await faceapi.loadFaceLandmarkModel('https://propview.ap-south-1.linodeobjects.com/')
-    await faceapi.loadFaceRecognitionModel('https://propview.ap-south-1.linodeobjects.com/')
-    await updateReferenceImageResults("https://propview.ap-south-1.linodeobjects.com/sambit.jpg")
-    addLog("Refrence Image loaded and trained");
-    LoginElem.addEventListener('click', function (ev) {
+    await faceapi.loadFaceRecognitionModel('https://propview.ap-south-1.linodeobjects.com/')    
+    addLog("Face Recognistion model loaded");
+    LoginElem.addEventListener('click', async function (ev) {
         console.log("Take Picture");
+        await updateReferenceImageResults("https://propview.ap-south-1.linodeobjects.com/sambit.jpg")
         ev.preventDefault();
     }, false);
 }
