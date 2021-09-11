@@ -8,7 +8,7 @@ navigator.mediaDevices.getUserMedia({
     videoElem.srcObject = stream;
     run();
 }).catch((err) => {
-    console.log(err);
+  alert(err);
 });
 
 addLog = (data) => {
