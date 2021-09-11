@@ -17,6 +17,10 @@ body{
     border: 1px solid black;
 }
 
+li {
+    list-style-type: none;
+}
+
 #videoElem{
     transform: scaleX(-1);
 }
@@ -25,6 +29,7 @@ body{
     border: 1px solid black;
     overflow: scroll;
     display: grid;
+    max-height: 500px;  
 }
 
 .button {
