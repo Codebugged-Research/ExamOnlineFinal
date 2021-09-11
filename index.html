@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="./public/css/main.css" />
 </head>
 
-<body>
+<body id="body">
     <div class="container">
         <div class="left">
             <video id="videoElem" autoplay playsinline></video>
@@ -18,8 +18,8 @@
             <ul id="results"></ul>
         </div>
     </div>
-    <button id="Login">Login</button>
-
+    <button id="Login" style="display: none">Login</button><br>
+    <button id="QueryImageCapture" style="display: none">Capture</button>
     <script src="./public/js/main.js"></script>
     <script src="./public/js/face-api.js"></script>
     <script src="./public/js/commons.js"></script>
