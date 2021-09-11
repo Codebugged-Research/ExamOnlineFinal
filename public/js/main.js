@@ -160,7 +160,7 @@ async function CheckFace() {
     .withFaceDescriptors()
 
   if (!results.length) {
-    addLog("Candidate absent");
+    addLog("Candidate left the frame");
   }
 
   if (results.length > 1) {
@@ -176,7 +176,7 @@ async function CheckFace() {
     if (inputLabel.substring(0, length2 - 3) === ouputLabel.substring(0, length - 6)) {
       addLog("Candidate present");
     } else {
-      addLog("unknown candidate");
+      addLog("Candidate absent");
     }
 
   })
