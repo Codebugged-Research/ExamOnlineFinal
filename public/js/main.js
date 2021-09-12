@@ -4,19 +4,32 @@ const LoginElem = document.getElementById("Login");
 const logbox = document.getElementById("logbox");
 const QueryImageCapture = document.getElementById("QueryImageCapture");
 const startProctoringbtn = document.getElementById("startProctoring");
+const stopProctoringbtn = document.getElementById("stopProctoring");
 const inputImgEl = document.createElement("img");
 const queryImgEl = document.createElement("img");
 const liveImgEl = document.createElement("img");
 
 //for login
-var inputLabel;
-var inputScore;
-var ouputLabel;
-var ouputScore;
+let inputLabel;
+let inputScore;
+let ouputLabel;
+let ouputScore;
 const height = 480;
 const width = 640;
 
+//model load
+let objectModel;
+let spoofModel;
+
+//intervals
 faceCheckInterval = 1000;
+objectCheckInterval = 1000;
+spoofCheckInterval = 1000;
+
+//interval controller
+let faceCheck;
+let objectCheck;
+let spoofCheck;
 
 navigator.mediaDevices.getUserMedia({
   video: true
@@ -32,25 +45,43 @@ navigator.mediaDevices.getUserMedia({
 
 //event logger
 addLog = (data) => {
-  var li = document.createElement("li");
+  let li = document.createElement("li");
   li.appendChild(document.createTextNode(data));
   resultElem.appendChild(li);
   logbox.scrollTop = logbox.scrollHeight;
 }
 
+async function stop() {
+  LoginElem.style = "display: box";
+  await clearInterval(faceCheck);
+  await clearInterval(objectCheck);
+  await clearInterval(spoofCheck);
+  location.reload();
+}
 async function proct() {
   addLog("-x- Procting started");
   addLog("-x- Live webcam picture captured");
+
   //start monitoring
+  //face and person
   faceCheck = setInterval(async () => { await CheckFace(); }, faceCheckInterval);
+  //object
+  objectCheck = setInterval(async () => { await CheckObject(); }, objectCheckInterval);
+  //spoof
+  spoofCheck = setInterval(async () => { await CheckSpoof(); }, spoofCheckInterval);
 }
 
 //authentication
 async function run() {
-  await faceapi.loadFaceLandmarkModel('https://propview.ap-south-1.linodeobjects.com/')
-  await faceapi.loadFaceRecognitionModel('https://propview.ap-south-1.linodeobjects.com/')
-  await faceapi.nets.ssdMobilenetv1.loadFromUri('https://propview.ap-south-1.linodeobjects.com/')
+  await faceapi.loadFaceLandmarkModel('https://propview.ap-south-1.linodeobjects.com/');
+  await faceapi.loadFaceRecognitionModel('https://propview.ap-south-1.linodeobjects.com/');
+  await faceapi.nets.ssdMobilenetv1.loadFromUri('https://propview.ap-south-1.linodeobjects.com/');
   addLog("-x- Face Recognistion model loaded");
+  objectModel = await cocoSsd.load();
+  addLog("-x- Object model loaded");
+  spoofModel = await ml5.imageClassifier('https://teachablemachine.withgoogle.com/models/dpo5k2b9u/model.json');
+  addLog("-x- Spoof model loaded");
+
   LoginElem.style = "display: box";
   LoginElem.addEventListener('click', async function (ev) {
     // await updateReferenceImageResults("https://img.lovepik.com/photo/50152/4070.jpg_wh860.jpg")
@@ -103,11 +134,11 @@ async function updateReferenceImageResults(url) {
 //capture query image
 function takepicture(imageElement) {
   const tempCanvas = document.createElement("canvas");
-  var context = tempCanvas.getContext('2d');
+  let context = tempCanvas.getContext('2d');
   tempCanvas.width = width;
   tempCanvas.height = height;
   context.drawImage(videoElem, 0, 0, width, height);
-  var data = tempCanvas.toDataURL('image/png');
+  let data = tempCanvas.toDataURL('image/png');
   imageElement.setAttribute('src', data);
   imageElement.style = "-webkit-transform: scaleX(-1); transform: scaleX(-1);"
   return
@@ -131,14 +162,21 @@ async function updateQueryImageResults() {
     const label = faceMatcher.findBestMatch(descriptor).toString()
     ouputLabel = label;
     ouputScore = detection.score;
-    var length = ouputLabel.length;
-    var length2 = inputLabel.length;
+    let length = ouputLabel.length;
+    let length2 = inputLabel.length;
     if (inputLabel.substring(0, length2 - 3) === ouputLabel.substring(0, length - 6)) {
       addLog(`Face sucessfully matched with ${(ouputScore * 100).toFixed(2)}% accuracy`);
       QueryImageCapture.style = "display: none";
       startProctoringbtn.style = "display: box";
       startProctoringbtn.addEventListener('click', async function (ev) {
-        //start monitoring
+        //start monitoring        
+        startProctoringbtn.style = "display: none";
+        stopProctoringbtn.style = "display: box";
+        stopProctoringbtn.addEventListener('click', async function (ev) {
+          //stop monitoring        
+          await stop();
+          ev.preventDefault();
+        }, false);
         await proct();
         ev.preventDefault();
       }, false);
@@ -148,6 +186,7 @@ async function updateQueryImageResults() {
   })
 }
 
+//check face during exam
 async function CheckFace() {
   takepicture(liveImgEl);
   if (!faceMatcher) {
@@ -171,8 +210,8 @@ async function CheckFace() {
     const label = faceMatcher.findBestMatch(descriptor).toString()
     ouputLabel = label;
     ouputScore = detection.score;
-    var length = ouputLabel.length;
-    var length2 = inputLabel.length;
+    let length = ouputLabel.length;
+    let length2 = inputLabel.length;
     if (inputLabel.substring(0, length2 - 3) === ouputLabel.substring(0, length - 6)) {
       addLog("Candidate present");
     } else {
@@ -180,4 +219,30 @@ async function CheckFace() {
     }
 
   })
+}
+
+//check for objects during exam
+async function CheckObject() {
+  await objectModel.detect(videoElem).then(predictions => {
+    predictions.forEach(prediction => {
+      if (prediction.class === "book" || prediction.class === "cell phone" || prediction.class === "laptop") {
+        addLog(prediction.class + " detected");
+      }
+      // console.log(prediction.class + " (" + (prediction.score * 100).toFixed(4) + ")");
+    });
+  });
+}
+
+async function CheckSpoof() {
+  spoofModel.classify(videoElem, (error, results) => {
+    if (error) {
+      console.error(error);
+      return;
+    }
+    // console.log(`${(results[0].confidence * 100).toFixed(2)}%`);
+    // console.log(`${(results[1].confidence * 100).toFixed(2)}%`);
+    if ((results[1].confidence * 100).toFixed(2) > 10.00) {
+      addLog("spoofing detected");
+    }
+  });
 }

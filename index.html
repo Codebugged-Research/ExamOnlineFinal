@@ -5,7 +5,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Exam Online Final</title>
-    <script src='https://rawgit.com/paulirish/memory-stats.js/master/bookmarklet.js'></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.7.4/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.2/dist/coco-ssd.min.js"> </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.9.0/p5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.9.0/addons/p5.dom.min.js"></script>
+    <script src="https://unpkg.com/ml5@latest/dist/ml5.min.js"></script>
     <link rel="stylesheet" href="./public/css/main.css" />
 </head>
 
@@ -21,7 +25,9 @@
     <button id="Login" style="display: none" class="button">Login</button><br>
     <button id="QueryImageCapture" style="display: none" class="button">Capture</button>
     <button id="startProctoring" style="display: none" class="button">Start Exam</button>
-    <script src="./public/js/main.js"></script>
+    <button id="stopProctoring" style="display: none" class="button">Stop Exam</button>
+    <script src='https://rawgit.com/paulirish/memory-stats.js/master/bookmarklet.js'></script>
+    <script src="./public/js/main.js" defer></script>
     <script src="./public/js/face-api.js"></script>
     <script src="./public/js/commons.js"></script>
     <script src="./public/js/faceDetectionControls.js"></script>
