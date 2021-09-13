@@ -15,10 +15,10 @@
         "function" == typeof Object.defineProperties
             ? Object.defineProperty
             : function (a, c, b) {
-                  if (a == Array.prototype || a == Object.prototype) return a;
-                  a[c] = b.value;
-                  return a;
-              };
+                if (a == Array.prototype || a == Object.prototype) return a;
+                a[c] = b.value;
+                return a;
+            };
     function m(a) {
         a = ["object" == typeof globalThis && globalThis, a, "object" == typeof window && window, "object" == typeof self && self, "object" == typeof global && global];
         for (var c = 0; c < a.length; ++c) {
@@ -52,12 +52,12 @@
         "function" == typeof Object.assign
             ? Object.assign
             : function (a, c) {
-                  for (var b = 1; b < arguments.length; b++) {
-                      var d = arguments[b];
-                      if (d) for (var e in d) Object.prototype.hasOwnProperty.call(d, e) && (a[e] = d[e]);
-                  }
-                  return a;
-              };
+                for (var b = 1; b < arguments.length; b++) {
+                    var d = arguments[b];
+                    if (d) for (var e in d) Object.prototype.hasOwnProperty.call(d, e) && (a[e] = d[e]);
+                }
+                return a;
+            };
     p("Object.assign", function (a) {
         return a || r;
     });
@@ -65,14 +65,14 @@
         return a
             ? a
             : function (c, b, d) {
-                  var e = this.length || 0;
-                  0 > b && (b = Math.max(0, e + b));
-                  if (null == d || d > e) d = e;
-                  d = Number(d);
-                  0 > d && (d = Math.max(0, e + d));
-                  for (b = Number(b || 0); b < d; b++) this[b] = c;
-                  return this;
-              };
+                var e = this.length || 0;
+                0 > b && (b = Math.max(0, e + b));
+                if (null == d || d > e) d = e;
+                d = Number(d);
+                0 > d && (d = Math.max(0, e + d));
+                for (b = Number(b || 0); b < d; b++) this[b] = c;
+                return this;
+            };
     });
     function t(a) {
         return a ? a : Array.prototype.fill;
@@ -91,7 +91,7 @@
         a = a.split(".");
         var b = u;
         a[0] in b || "undefined" == typeof b.execScript || b.execScript("var " + a[0]);
-        for (var d; a.length && (d = a.shift()); ) a.length || void 0 === c ? (b[d] && b[d] !== Object.prototype[d] ? (b = b[d]) : (b = b[d] = {})) : (b[d] = c);
+        for (var d; a.length && (d = a.shift());) a.length || void 0 === c ? (b[d] && b[d] !== Object.prototype[d] ? (b = b[d]) : (b = b[d] = {})) : (b[d] = c);
     }
     var w = { color: "white", lineWidth: 4, radius: 6, visibilityMin: 0.5 };
     function x(a) {
@@ -144,29 +144,33 @@
                 k = c[k[1]];
 
                 //calculate the distance between the points marked by landmarks
-                distHolder.push((g.y + k.y)/2);
+                distHolder.push((g.y + k.y) / 2);
 
                 g &&
                     k &&
                     (void 0 === g.visibility || g.visibility > d.visibilityMin) &&
                     (void 0 === k.visibility || k.visibility > d.visibilityMin) &&
                     ((a.strokeStyle = y(d.color, { index: f, from: g, to: k })),
-                    (a.lineWidth = y(d.lineWidth, { index: f, from: g, to: k })), 
-                    a.moveTo(g.x * e.width, g.y * e.height), 
-                    a.lineTo(k.x * e.width, k.y * e.height));
+                        (a.lineWidth = y(d.lineWidth, { index: f, from: g, to: k })),
+                        a.moveTo(g.x * e.width, g.y * e.height),
+                        a.lineTo(k.x * e.width, k.y * e.height));
                 ++f;
 
                 a.stroke();
             }
 
             var dist = distHolder[0] - distHolder[1];
-            console.log(dist);
-            if(dist > 0.010){
-                console.log("Open mouth");
+            // console.log(dist);
+            if (dist > 0.010) {
+                // console.log("Open mouth");
+                let li = document.createElement("li");
+                li.appendChild(document.createTextNode("Candidate is talking"));
+                resultElem.appendChild(li);
+                logbox.scrollTop = logbox.scrollHeight;
             } else {
                 counter = 0;
             }
-            
+
             a.restore();
         }
     });
