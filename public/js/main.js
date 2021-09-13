@@ -37,8 +37,10 @@ let faceCheck;
 let objectCheck;
 let spoofCheck;
 let lipTrackCheck;
+let faceMesh;
 
 let capturedStream;
+let camera;
 
 navigator.mediaDevices.getUserMedia({
   video: true
@@ -65,8 +67,8 @@ async function stop() {
   await clearInterval(faceCheck);
   await clearInterval(objectCheck);
   await clearInterval(spoofCheck);
-  clearInterval(lipTrackCheck);
-
+  await clearInterval(lipTrackCheck);
+  await camera.stop();
   location.reload();
 }
 async function proct() {
@@ -80,9 +82,10 @@ async function proct() {
   objectCheck = setInterval(async () => { await CheckObject(); }, objectCheckInterval);
   //spoof
   spoofCheck = setInterval(async () => { await CheckSpoof(); }, spoofCheckInterval);
+  // lip
+  // lipCheck = setInterval(async () => { await checkLipTracker(); }, lipTrackerInterval);
+  checkLipTracker();
 
-  //lipTracker
-  // lipTrackCheck = setInterval(async () => { await checkLipTracker(); }, lipTrackerInterval);
 }
 
 //authentication
@@ -93,13 +96,27 @@ async function run() {
   addLog("-x- Face Recognistion model loaded");
   objectModel = await cocoSsd.load();
   addLog("-x- Object model loaded");
-  spoofModel = await ml5.imageClassifier('https://teachablemachine.withgoogle.com/models/dpo5k2b9u/model.json');
+  spoofModel = await ml5.imageClassifier('./public/spoof/model.json');
   addLog("-x- Spoof model loaded");
-
-  const faceMesh = new FaceMesh({ locateFile: (file) => {
-    return `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4/${file}`;
-  } });
+  faceMesh = new FaceMesh({
+    locateFile: (file) => {
+      return `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`;
+    }
+  });
+  faceMesh.setOptions({
+    maxNumFaces: 1,
+    minDetectionConfidence: 0.5,
+    minTrackingConfidence: 0.5
+  });
   faceMesh.onResults(onResults);
+  camera = new Camera(videoElem, {
+    onFrame: async () => {
+      await faceMesh.send({ image: videoElem });
+    },
+    width: 1280,
+    height: 720
+  });
+  addLog("-x- Lip model loaded");
 
   LoginElem.style = "display: box";
   LoginElem.addEventListener('click', async function (ev) {
@@ -205,6 +222,23 @@ async function updateQueryImageResults() {
   })
 }
 
+//lip draw
+function onResults(results) {
+  const canvasElement = document.createElement('canvas');
+  const canvasCtx = canvasElement.getContext('2d');
+  canvasCtx.save();
+  canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+  canvasCtx.drawImage(
+    results.image, 0, 0, canvasElement.width, canvasElement.height);
+  if (results.multiFaceLandmarks) {
+    for (const landmarks of results.multiFaceLandmarks) {
+      drawConnectors(canvasCtx, landmarks, FACEMESH_LIPS, { color: '#E0E0E0' });
+    }
+  }
+  canvasCtx.restore();
+}
+
+let counter = 0;
 //check face during exam
 async function CheckFace() {
   takepicture(liveImgEl);
@@ -218,7 +252,7 @@ async function CheckFace() {
     .withFaceDescriptors()
 
   if (!results.length) {
-    addLog("Candidate left the frame");
+    addLog("-x- no frame for face");
   }
 
   if (results.length > 1) {
@@ -258,49 +292,12 @@ async function CheckSpoof() {
       console.error(error);
       return;
     }
-    if ((results[1].confidence * 100).toFixed(2) > 10.00) {
+    if ((results[1].confidence * 100).toFixed(2) > 30.00) {
       addLog("spoofing detected");
     }
   });
 }
 
-function onResults(results) {
-  // modal loaded add Log
-  addLog("-x- Lip Tracker Loaded");
-
-  // Draw the overlays.
-  canvasCtx.save();
-  canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
-  canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
-  if (results.multiFaceLandmarks) {
-      for (const landmarks of results.multiFaceLandmarks) {            
-          drawingUtils.drawConnectors(canvasCtx, landmarks, mpFaceMesh.FACEMESH_LIPS, { color: 'white' });
-      }
-  }
-  canvasCtx.restore();
+async function checkLipTracker() {
+  await camera.start();
 }
-
-new controls.SourcePicker({
-    onSourceChanged: () => {
-        faceMesh.reset();
-    },
-    onFrame: async (input, size) => {
-        const aspect = size.height / size.width;
-        let width, height;
-        if (window.innerWidth > window.innerHeight) {
-            height = window.innerHeight;
-            width = height / aspect;
-        }
-        else {
-            width = window.innerWidth;
-            height = width * aspect;
-        }
-        canvasElement.width = width;
-        canvasElement.height = height;
-        await faceMesh.send({ image: input });
-    },
-    examples: {
-        videos: [],
-        images: [],
-    }
-})
