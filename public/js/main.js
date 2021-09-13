@@ -9,6 +9,10 @@ const inputImgEl = document.createElement("img");
 const queryImgEl = document.createElement("img");
 const liveImgEl = document.createElement("img");
 
+const controls = window;
+const drawingUtils = window;
+const mpFaceMesh = window;
+
 //for login
 let inputLabel;
 let inputScore;
@@ -20,18 +24,21 @@ const width = 640;
 //model load
 let objectModel;
 let spoofModel;
+let lipModel;
 
 //intervals
 faceCheckInterval = 1000;
 objectCheckInterval = 1000;
 spoofCheckInterval = 1000;
+lipTrackerInterval = 1000;
 
 //interval controller
 let faceCheck;
 let objectCheck;
 let spoofCheck;
+let lipTrackCheck;
 
-const capturedStream;
+let capturedStream;
 
 navigator.mediaDevices.getUserMedia({
   video: true
@@ -58,6 +65,8 @@ async function stop() {
   await clearInterval(faceCheck);
   await clearInterval(objectCheck);
   await clearInterval(spoofCheck);
+  clearInterval(lipTrackCheck);
+
   location.reload();
 }
 async function proct() {
@@ -71,6 +80,9 @@ async function proct() {
   objectCheck = setInterval(async () => { await CheckObject(); }, objectCheckInterval);
   //spoof
   spoofCheck = setInterval(async () => { await CheckSpoof(); }, spoofCheckInterval);
+
+  //lipTracker
+  // lipTrackCheck = setInterval(async () => { await checkLipTracker(); }, lipTrackerInterval);
 }
 
 //authentication
@@ -83,6 +95,12 @@ async function run() {
   addLog("-x- Object model loaded");
   spoofModel = await ml5.imageClassifier('https://teachablemachine.withgoogle.com/models/dpo5k2b9u/model.json');
   addLog("-x- Spoof model loaded");
+
+  const faceMesh = new FaceMesh({ locateFile: (file) => {
+    console.log(file); 
+    return `./${file}`;
+  } });
+  faceMesh.onResults(onResults);
 
   LoginElem.style = "display: box";
   LoginElem.addEventListener('click', async function (ev) {
@@ -241,10 +259,49 @@ async function CheckSpoof() {
       console.error(error);
       return;
     }
-    // console.log(`${(results[0].confidence * 100).toFixed(2)}%`);
-    // console.log(`${(results[1].confidence * 100).toFixed(2)}%`);
     if ((results[1].confidence * 100).toFixed(2) > 10.00) {
       addLog("spoofing detected");
     }
   });
 }
+
+function onResults(results) {
+  // modal loaded add Log
+  addLog("-x- Lip Tracker Loaded");
+
+  // Draw the overlays.
+  canvasCtx.save();
+  canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+  canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
+  if (results.multiFaceLandmarks) {
+      for (const landmarks of results.multiFaceLandmarks) {            
+          drawingUtils.drawConnectors(canvasCtx, landmarks, mpFaceMesh.FACEMESH_LIPS, { color: 'white' });
+      }
+  }
+  canvasCtx.restore();
+}
+
+new controls.SourcePicker({
+    onSourceChanged: () => {
+        faceMesh.reset();
+    },
+    onFrame: async (input, size) => {
+        const aspect = size.height / size.width;
+        let width, height;
+        if (window.innerWidth > window.innerHeight) {
+            height = window.innerHeight;
+            width = height / aspect;
+        }
+        else {
+            width = window.innerWidth;
+            height = width * aspect;
+        }
+        canvasElement.width = width;
+        canvasElement.height = height;
+        await faceMesh.send({ image: input });
+    },
+    examples: {
+        videos: [],
+        images: [],
+    }
+})
