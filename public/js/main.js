@@ -85,7 +85,7 @@ async function proct() {
   // lip
   // lipCheck = setInterval(async () => { await checkLipTracker(); }, lipTrackerInterval);
   checkLipTracker();
-
+  eyeTracker();
 }
 
 //authentication
@@ -300,4 +300,16 @@ async function CheckSpoof() {
 
 async function checkLipTracker() {
   await camera.start();
+}
+
+async function eyeTracker() {
+  await webgazer.setRegression('ridge')        
+        .saveDataAcrossSessions(true)
+        .begin();
+
+  addLog("-x- Eye Tracker Loaded");
+  
+  webgazer.showVideoPreview(false) /* shows all video previews */
+      .showPredictionPoints(false) /* shows a square every 100 milliseconds where current prediction is */
+      .applyKalmanFilter(true);
 }

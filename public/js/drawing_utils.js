@@ -160,9 +160,7 @@
             }
 
             var dist = distHolder[0] - distHolder[1];
-            // console.log(dist);
             if (dist > 0.010) {
-                // console.log("Open mouth");
                 let li = document.createElement("li");
                 li.appendChild(document.createTextNode("Candidate is talking"));
                 resultElem.appendChild(li);
