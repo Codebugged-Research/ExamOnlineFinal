@@ -2,11 +2,21 @@ const videoElem = document.getElementById("videoElem");
 const resultElem = document.getElementById("results");
 const LoginElem = document.getElementById("Login");
 
+const capturedStream;
+
 navigator.mediaDevices.getUserMedia({
     video: true
 }).then((stream) => {
+    capturedStream = stream;
     videoElem.srcObject = stream;
-    run();
+    
+    await run()
+    .then(() => {
+      mainModelChain();
+    })
+    .catch((err) => {
+      alert(err);
+    })
 }).catch((err) => {
   alert(err);
 });
@@ -30,30 +40,33 @@ async function run() {
 }
 
   async function updateReferenceImageResults(url) {
-    const inputImgEl = document.createElement("img");
-    inputImgEl.src = url
-    const canvas = document.createElement("canvas");
+    return new Promise((resolve, reject) => {
 
-    const fullFaceDescriptions = await faceapi
-        .detectAllFaces(inputImgEl, getFaceDetectorOptions())
-        .withFaceLandmarks()
-        .withFaceDescriptors()
-
-      if (!fullFaceDescriptions.length) {
-        return
-      }
-      faceMatcher = new faceapi.FaceMatcher(fullFaceDescriptions)
-
-      faceapi.matchDimensions(canvas, inputImgEl)
-      const resizedResults = faceapi.resizeResults(fullFaceDescriptions, inputImgEl)
-      const labels = faceMatcher.labeledDescriptors
-        .map(ld => ld.label)
-      resizedResults.forEach(({ detection, descriptor }) => {
-        const label = faceMatcher.findBestMatch(descriptor).toString();
-        inputLabel = label;
-        inputScore = detection.score;
-        const options = { label }
-        const drawBox = new faceapi.draw.DrawBox(detection.box, options)
-        drawBox.draw(canvas)
-      })
+      const inputImgEl = document.createElement("img");
+      inputImgEl.src = url
+      const canvas = document.createElement("canvas");
+  
+      const fullFaceDescriptions = await faceapi
+          .detectAllFaces(inputImgEl, getFaceDetectorOptions())
+          .withFaceLandmarks()
+          .withFaceDescriptors()
+  
+        if (!fullFaceDescriptions.length) {
+          return
+        }
+        faceMatcher = new faceapi.FaceMatcher(fullFaceDescriptions)
+  
+        faceapi.matchDimensions(canvas, inputImgEl)
+        const resizedResults = faceapi.resizeResults(fullFaceDescriptions, inputImgEl)
+        const labels = faceMatcher.labeledDescriptors
+          .map(ld => ld.label)
+        resizedResults.forEach(({ detection, descriptor }) => {
+          const label = faceMatcher.findBestMatch(descriptor).toString();
+          inputLabel = label;
+          inputScore = detection.score;
+          const options = { label }
+          const drawBox = new faceapi.draw.DrawBox(detection.box, options)
+          drawBox.draw(canvas)
+        })
+    })
   }
