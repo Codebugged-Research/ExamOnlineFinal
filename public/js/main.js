@@ -97,8 +97,7 @@ async function run() {
   addLog("-x- Spoof model loaded");
 
   const faceMesh = new FaceMesh({ locateFile: (file) => {
-    console.log(file); 
-    return `./${file}`;
+    return `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4/${file}`;
   } });
   faceMesh.onResults(onResults);
 
