@@ -42,6 +42,10 @@ let faceMesh;
 let capturedStream;
 let camera;
 
+window.onbeforeunload = function() {
+  webgazer.end();
+}
+
 navigator.mediaDevices.getUserMedia({
   video: true
 }).then(async (stream) => {
@@ -85,7 +89,7 @@ async function proct() {
   // lip
   // lipCheck = setInterval(async () => { await checkLipTracker(); }, lipTrackerInterval);
   checkLipTracker();
-  eyeTracker();
+  // eyeTracker();
 }
 
 //authentication
@@ -289,10 +293,10 @@ async function CheckObject() {
 async function CheckSpoof() {
   spoofModel.classify(videoElem, (error, results) => {
     if (error) {
-      console.error(error);
+      console.log(error);
       return;
     }
-    if ((results[1].confidence * 100).toFixed(2) > 30.00) {
+    if ((results[1].confidence * 100).toFixed(2) > 75.00) {
       addLog("spoofing detected");
     }
   });
