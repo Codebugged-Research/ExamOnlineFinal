@@ -1,6 +1,8 @@
 const videoElem = document.getElementById("videoElem");
-const resultElem = document.getElementById("results");
+// const resultElem = document.getElementById("results");
 const LoginElem = document.getElementById("Login");
+const actual = document.getElementById("actual");
+const calibrationEye = document.getElementById("calibration_eye");
 const logbox = document.getElementById("logbox");
 const QueryImageCapture = document.getElementById("QueryImageCapture");
 const startProctoringbtn = document.getElementById("startProctoring");
@@ -42,21 +44,34 @@ let faceMesh;
 let capturedStream;
 let camera;
 
-window.onbeforeunload = function() {
+window.onload = async function () {
+  webgazer.params.showVideoPreview = true;
+  await webgazer.setRegression('ridge')
+    .setGazeListener(function (data, clock) {
+    })
+    .saveDataAcrossSessions(true)
+    .begin();
+  webgazer.showVideoPreview(true)
+    .showPredictionPoints(true)
+    .applyKalmanFilter(true);
+
+  var setup = function () {
+
+    //Set up the main canvas. The main canvas is used to calibrate the webgazer.
+    var canvas = document.getElementById("plotting_canvas");
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    canvas.style.position = 'fixed';
+  };
+  setup();
+
+};
+
+window.saveDataAcrossSessions = true;
+
+window.onbeforeunload = function () {
   webgazer.end();
 }
-
-navigator.mediaDevices.getUserMedia({
-  video: true
-}).then(async (stream) => {
-
-  videoElem.srcObject = stream;
-  //auth
-  await run();
-
-}).catch((err) => {
-  alert(err);
-});
 
 //event logger
 addLog = (data) => {
@@ -65,14 +80,24 @@ addLog = (data) => {
   resultElem.appendChild(li);
   logbox.scrollTop = logbox.scrollHeight;
 }
-
+async function start() {
+  calibrationEye.style = "display: none";
+  actual.style = "display: box";
+  navigator.mediaDevices.getUserMedia({
+    video: true
+  }).then(async (stream) => {
+    videoElem.srcObject = stream;
+    await run();
+  }).catch((err) => {
+    alert(err);
+  });
+}
 async function stop() {
   LoginElem.style = "display: box";
   await clearInterval(faceCheck);
   await clearInterval(objectCheck);
   await clearInterval(spoofCheck);
-  await clearInterval(lipTrackCheck);
-  await camera.stop();
+  // await camera.stop();
   location.reload();
 }
 async function proct() {
@@ -86,13 +111,20 @@ async function proct() {
   objectCheck = setInterval(async () => { await CheckObject(); }, objectCheckInterval);
   //spoof
   spoofCheck = setInterval(async () => { await CheckSpoof(); }, spoofCheckInterval);
-  // lip
-  // lipCheck = setInterval(async () => { await checkLipTracker(); }, lipTrackerInterval);
+  // lip  
   checkLipTracker();
-  // eyeTracker();
 }
 
-//authentication
+function Restart() {
+  document.getElementById("Accuracy").innerHTML = "<a>Not yet Calibrated</a>";
+  webgazer.clearData();
+  ClearCalibration();
+  PopUpInstruction();
+}
+
+
+
+//actual detection
 async function run() {
   await faceapi.loadFaceLandmarkModel('https://propview.ap-south-1.linodeobjects.com/');
   await faceapi.loadFaceRecognitionModel('https://propview.ap-south-1.linodeobjects.com/');
@@ -296,9 +328,11 @@ async function CheckSpoof() {
       console.log(error);
       return;
     }
-    if ((results[1].confidence * 100).toFixed(2) > 75.00) {
-      addLog("spoofing detected");
-    }
+
+    addLog(results[0].label + ": " + (results[0].confidence * 100).toFixed(2) + "\n" + results[1].label + ": " + (results[1].confidence * 100).toFixed(2));
+    // if ((results[1].confidence * 100).toFixed(2) > 75.00) {
+    //   addLog("spoofing detected");
+    // }
   });
 }
 
@@ -306,14 +340,11 @@ async function checkLipTracker() {
   await camera.start();
 }
 
-async function eyeTracker() {
-  await webgazer.setRegression('ridge')        
-        .saveDataAcrossSessions(true)
-        .begin();
-
-  addLog("-x- Eye Tracker Loaded");
-  
-  webgazer.showVideoPreview(false) /* shows all video previews */
-      .showPredictionPoints(false) /* shows a square every 100 milliseconds where current prediction is */
-      .applyKalmanFilter(true);
-}
+function resize() {
+  var canvas = document.getElementById('plotting_canvas');
+  var context = canvas.getContext('2d');
+  context.clearRect(0, 0, canvas.width, canvas.height);
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+};
+window.addEventListener('resize', resize, false);

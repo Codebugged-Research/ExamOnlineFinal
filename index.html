@@ -4,38 +4,85 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./public/css/main.css" />
+    <link rel="stylesheet" href="./public/css/style.css">
+    <link rel="stylesheet" href="./public/css/bootstrap.min.css">
     <title>Exam Online Final</title>
+    <script src="./public/js/webgazer.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.7.4/dist/tf.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.2/dist/coco-ssd.min.js"> </script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3/camera_utils.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils@0.5/control_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3/camera_utils.js"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils@0.5/control_utils.js"
+        crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.9.0/p5.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.9.0/addons/p5.dom.min.js"></script>
     <script src="https://unpkg.com/ml5@latest/dist/ml5.min.js"></script>
-    <link rel="stylesheet" href="./public/css/main.css" />
 
     <script src="./public/js/face-api.js"></script>
     <script src="./public/js/commons.js"></script>
     <script src="./public/js/faceDetectionControls.js"></script>
     <script src="./public/js/drawing_utils.js"></script>
     <script src="./public/js/face_mesh.js"></script>
-    <script src="./public/js/webgazer.js"></script>
 </head>
 
 <body id="body">
-    <div class="container">
-        <div class="left">
-            <video id="videoElem" autoplay playsinline></video>
+    <script src="./public/js/main.js" defer></script>
+    <div id="calibration_eye" >
+        <canvas id="plotting_canvas" width="500" height="500" style="cursor:crosshair;"></canvas>        
+        <script src="./public/js/jquery.min.js"></script>
+        <script src="./public/js/bootstrap.min.js"></script>
+        <script src="./public/js/sweetalert.min.js"></script>
+        <script src="./public/js/calibration.js"></script>
+        <script src="./public/js/precision_calculation.js"></script>
+        <script src="./public/js/precision_store_points.js"></script>
+        <li id="Accuracy" style="float:right"><a>Not yet Calibrated</a></li>
+        <!-- Calibration points -->
+        <div class="calibrationDiv">
+            <input type="button" class="Calibration" id="Pt1"></input>
+            <input type="button" class="Calibration" id="Pt2"></input>
+            <input type="button" class="Calibration" id="Pt3"></input>
+            <input type="button" class="Calibration" id="Pt4"></input>
+            <input type="button" class="Calibration" id="Pt5"></input>
+            <input type="button" class="Calibration" id="Pt6"></input>
+            <input type="button" class="Calibration" id="Pt7"></input>
+            <input type="button" class="Calibration" id="Pt8"></input>
+            <input type="button" class="Calibration" id="Pt9"></input>
         </div>
-        <div class="right" id="logbox">
-            <ul id="results"></ul>
+
+        <!-- Modal -->
+        <div id="helpModal" class="modal fade" role="dialog">
+            <div class="modal-dialog">
+
+                <!-- Modal content-->
+                <div class="modal-content">
+                    <div class="modal-footer">    
+                        (Write reason or a specific message)  <br>                 
+                        <button type="button" id='start_calibration' class="btn btn-primary" data-dismiss="modal"
+                            onclick="Restart()">Calibrate</button>
+                    </div>
+                </div>
+
+            </div>
         </div>
     </div>
-    <button id="Login" style="display: none" class="button">Login</button><br>
-    <button id="QueryImageCapture" style="display: none" class="button">Capture</button>
-    <button id="startProctoring" style="display: none" class="button">Start Exam</button>
-    <button id="stopProctoring" style="display: none" class="button2">Stop Exam</button>
-    <script src="./public/js/main.js" defer></script>
+
+    <div id="actual" style="display: none;">
+        <div class="container">
+            <div class="left">
+                <video id="videoElem" autoplay playsinline></video>
+            </div>
+            <div class="right" id="logbox">
+                <ul id="results"></ul>
+            </div>
+        </div>
+        <button id="Login" style="display: none" class="button">Login</button><br>
+        <button id="QueryImageCapture" style="display: none" class="button">Capture</button>
+        <button id="startProctoring" style="display: none" class="button">Start Exam</button>
+        <button id="stopProctoring" style="display: none" class="button2">Stop Exam</button>
+        <!-- <script src="./public/js/main.js" defer></script> -->
+    </div>
+    
 </body>
 
 </html>
