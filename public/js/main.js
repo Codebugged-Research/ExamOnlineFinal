@@ -1,5 +1,5 @@
 const videoElem = document.getElementById("videoElem");
-// const resultElem = document.getElementById("results");
+const resultElem = document.getElementById("results");
 const LoginElem = document.getElementById("Login");
 const actual = document.getElementById("actual");
 const calibrationEye = document.getElementById("calibration_eye");

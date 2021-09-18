@@ -109,7 +109,10 @@ $(document).ready(function(){
                           if (isConfirm){
                             //clear the calibration & hide the last middle button
                             ClearCanvas();
+                            webgazer.showVideoPreview(false)
+                              .showPredictionPoints(false)
                             webgazer.pause();
+
                             start();
                           } else {
                             //use restart function to restart the calibration
