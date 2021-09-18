@@ -80,6 +80,7 @@ addLog = (data) => {
   resultElem.appendChild(li);
   logbox.scrollTop = logbox.scrollHeight;
 }
+
 async function start() {
   calibrationEye.style = "display: none";
   actual.style = "display: box";
