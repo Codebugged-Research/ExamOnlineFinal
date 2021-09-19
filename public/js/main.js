@@ -11,10 +11,13 @@ const stopProctoringbtn = document.getElementById("stopProctoring");
 const inputImgEl = document.createElement("img");
 const queryImgEl = document.createElement("img");
 const liveImgEl = document.createElement("img");
+const obejctDetectImageEl = document.createElement("img");
 
 const controls = window;
 const drawingUtils = window;
 const mpFaceMesh = window;
+
+let maxPredictions;
 
 let photoUrl = "https://propview.ap-south-1.linodeobjects.com/sambit.jpg";
 
@@ -33,7 +36,7 @@ let lipModel;
 
 //intervals
 faceCheckInterval = 1000;
-objectCheckInterval = 2000;
+objectCheckInterval = 1000;
 spoofCheckInterval = 1000;
 lipTrackerInterval = 1000;
 
@@ -88,7 +91,7 @@ async function start() {
   webgazer.pause();
   webgazer.params.showVideoPreview = false;
   $('#webgazerVideoContainer').remove();
-  resultElem.innerHTML = "";  
+  resultElem.innerHTML = "";
   $('#tempImg').hide();
   inputurlEl.style = "display: box";
   calibrationEye.style = "display: none";
@@ -112,7 +115,7 @@ async function stop() {
   await clearInterval(faceCheck);
   // await clearInterval(objectCheck);
   await clearInterval(spoofCheck);
-  await camera.stop();
+  // await camera.stop();
   location.reload();
 }
 async function proct() {
@@ -124,7 +127,7 @@ async function proct() {
   //face and person
   faceCheck = setInterval(async () => { await CheckFace(); }, faceCheckInterval);
   //object
-  // objectCheck = setInterval(async () => { await CheckObject(); }, objectCheckInterval);
+  objectCheck = setInterval(async () => { await CheckObject(); }, objectCheckInterval);
   //spoof
   spoofCheck = setInterval(async () => { await CheckSpoof(); }, spoofCheckInterval);
   // lip  
@@ -149,13 +152,20 @@ async function uploadRefImage(e) {
 
 //actual detection
 async function run() {
+  const URL = "./public/spoof/"
+  const URL2 = "./public/object/"
+  const modelURL = URL + "model.json";
+  const metadataURL = URL + "metadata.json";
+  const modelURL2 = URL2 + "model.json";
+  const metadataURL2 = URL2 + "metadata.json";
   await faceapi.loadFaceLandmarkModel('https://propview.ap-south-1.linodeobjects.com/');
   await faceapi.loadFaceRecognitionModel('https://propview.ap-south-1.linodeobjects.com/');
   await faceapi.nets.ssdMobilenetv1.loadFromUri('https://propview.ap-south-1.linodeobjects.com/');
   addLog("-x- Face Recognistion model loaded");
-  // objectModel = await ml5.imageClassifier('./public/object/model.json');
-  // addLog("-x- Object model loaded");
-  spoofModel = await ml5.imageClassifier('./public/spoof/model.json');
+  objectModel = await tmImage.load(modelURL2, metadataURL2);
+  addLog("-x- Object model loaded");
+  spoofModel = await tmImage.load(modelURL, metadataURL);
+  maxPredictions = spoofModel.getTotalClasses();
   addLog("-x- Spoof model loaded");
   faceMesh = new FaceMesh({
     locateFile: (file) => {
@@ -334,31 +344,20 @@ async function CheckFace() {
 
 //check for objects during exam
 async function CheckObject() {
-  objectModel.classify(videoElem, (error, results) => {
-    if (error) {
-      console.log(error);
-      return;
-    }
-    console.log(results);
-    addLog(results);
-    // if ((results[1].confidence * 100).toFixed(2) > 75.00) {
-    //   addLog("spoofing detected");
-    // }
-  });
+  const predictions = objectModel.predict(videoElem);
+  if (prediction[0].probability.toFixed(2) > 0.85) {
+    addLog(prediction[0].className + " detected");
+  }
+  if (prediction[1].probability.toFixed(2) > 0.95) {
+    addLog(prediction[1].className + " detected");
+  }
 }
 
 async function CheckSpoof() {
-  spoofModel.classify(videoElem, (error, results) => {
-    if (error) {
-      console.log(error);
-      return;
-    }
-
-    addLog(results[0].label + ": " + (results[0].confidence * 100).toFixed(2) + "\n" + results[1].label + ": " + (results[1].confidence * 100).toFixed(2));
-    // if ((results[1].confidence * 100).toFixed(2) > 75.00) {
-    //   addLog("spoofing detected");
-    // }
-  });
+  const prediction = await spoofModel.predict(videoElem);
+  if (prediction[1].probability.toFixed(2) > 0.75) {
+    addLog("spoof detected");
+  }
 }
 
 async function checkLipTracker() {
