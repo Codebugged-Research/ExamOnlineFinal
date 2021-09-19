@@ -2,6 +2,7 @@ const videoElem = document.getElementById("videoElem");
 const resultElem = document.getElementById("results");
 const LoginElem = document.getElementById("Login");
 const actual = document.getElementById("actual");
+const inputurlEl = document.getElementById("inputurl");
 const calibrationEye = document.getElementById("calibration_eye");
 const logbox = document.getElementById("logbox");
 const QueryImageCapture = document.getElementById("QueryImageCapture");
@@ -14,6 +15,8 @@ const liveImgEl = document.createElement("img");
 const controls = window;
 const drawingUtils = window;
 const mpFaceMesh = window;
+
+let photoUrl = "https://propview.ap-south-1.linodeobjects.com/sambit.jpg";
 
 //for login
 let inputLabel;
@@ -30,7 +33,7 @@ let lipModel;
 
 //intervals
 faceCheckInterval = 1000;
-objectCheckInterval = 1000;
+objectCheckInterval = 2000;
 spoofCheckInterval = 1000;
 lipTrackerInterval = 1000;
 
@@ -82,7 +85,17 @@ addLog = (data) => {
 }
 
 async function start() {
+  webgazer.pause();
+  webgazer.params.showVideoPreview = false;
+  $('#webgazerVideoContainer').remove();
+  resultElem.innerHTML = "";  
+  $('#tempImg').hide();
+  inputurlEl.style = "display: box";
   calibrationEye.style = "display: none";
+}
+
+async function loadReference() {
+  inputurlEl.style = "display: none";
   actual.style = "display: box";
   navigator.mediaDevices.getUserMedia({
     video: true
@@ -93,23 +106,25 @@ async function start() {
     alert(err);
   });
 }
+
 async function stop() {
   LoginElem.style = "display: box";
   await clearInterval(faceCheck);
-  await clearInterval(objectCheck);
+  // await clearInterval(objectCheck);
   await clearInterval(spoofCheck);
-  // await camera.stop();
+  await camera.stop();
   location.reload();
 }
 async function proct() {
   addLog("-x- Procting started");
   addLog("-x- Live webcam picture captured");
+  webgazer.resume();
 
   //start monitoring
   //face and person
   faceCheck = setInterval(async () => { await CheckFace(); }, faceCheckInterval);
   //object
-  objectCheck = setInterval(async () => { await CheckObject(); }, objectCheckInterval);
+  // objectCheck = setInterval(async () => { await CheckObject(); }, objectCheckInterval);
   //spoof
   spoofCheck = setInterval(async () => { await CheckSpoof(); }, spoofCheckInterval);
   // lip  
@@ -123,6 +138,13 @@ function Restart() {
   PopUpInstruction();
 }
 
+async function uploadRefImage(e) {
+  const imgFile = $('#refImgUploadInput').get(0).files[0]
+  const img = await faceapi.bufferToImage(imgFile)
+  photoUrl = img.src;
+  $('#tempImg').get(0).src = img.src;
+  $('#tempImg').show();
+}
 
 
 //actual detection
@@ -131,8 +153,8 @@ async function run() {
   await faceapi.loadFaceRecognitionModel('https://propview.ap-south-1.linodeobjects.com/');
   await faceapi.nets.ssdMobilenetv1.loadFromUri('https://propview.ap-south-1.linodeobjects.com/');
   addLog("-x- Face Recognistion model loaded");
-  objectModel = await cocoSsd.load();
-  addLog("-x- Object model loaded");
+  // objectModel = await ml5.imageClassifier('./public/object/model.json');
+  // addLog("-x- Object model loaded");
   spoofModel = await ml5.imageClassifier('./public/spoof/model.json');
   addLog("-x- Spoof model loaded");
   faceMesh = new FaceMesh({
@@ -157,8 +179,7 @@ async function run() {
 
   LoginElem.style = "display: box";
   LoginElem.addEventListener('click', async function (ev) {
-    // await updateReferenceImageResults("https://img.lovepik.com/photo/50152/4070.jpg_wh860.jpg")
-    await updateReferenceImageResults("https://propview.ap-south-1.linodeobjects.com/sambit.jpg")
+    await updateReferenceImageResults(photoUrl);
     ev.preventDefault();
   }, false);
   QueryImageCapture.addEventListener('click', async function (ev) {
@@ -313,13 +334,16 @@ async function CheckFace() {
 
 //check for objects during exam
 async function CheckObject() {
-  await objectModel.detect(videoElem).then(predictions => {
-    predictions.forEach(prediction => {
-      if (prediction.class === "book" || prediction.class === "cell phone" || prediction.class === "laptop") {
-        addLog(prediction.class + " detected");
-      }
-      // console.log(prediction.class + " (" + (prediction.score * 100).toFixed(4) + ")");
-    });
+  objectModel.classify(videoElem, (error, results) => {
+    if (error) {
+      console.log(error);
+      return;
+    }
+    console.log(results);
+    addLog(results);
+    // if ((results[1].confidence * 100).toFixed(2) > 75.00) {
+    //   addLog("spoofing detected");
+    // }
   });
 }
 
