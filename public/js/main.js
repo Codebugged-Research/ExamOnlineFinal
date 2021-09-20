@@ -36,7 +36,7 @@ let lipModel;
 
 //intervals
 faceCheckInterval = 1000;
-objectCheckInterval = 1000;
+objectCheckInterval = 800;
 spoofCheckInterval = 1000;
 lipTrackerInterval = 1000;
 
@@ -344,12 +344,16 @@ async function CheckFace() {
 
 //check for objects during exam
 async function CheckObject() {
-  const predictions = objectModel.predict(videoElem);
-  if (prediction[0].probability.toFixed(2) > 0.85) {
-    addLog(prediction[0].className + " detected");
+  const predictions = await objectModel.predict(videoElem);
+  // predictions.forEach((obj)=>{
+  //   console.log(obj);
+  // });
+  console.log(predictions);
+  if (predictions[0].probability.toFixed(2) > 0.75) {
+    addLog(predictions[0].className + " detected");
   }
-  if (prediction[1].probability.toFixed(2) > 0.95) {
-    addLog(prediction[1].className + " detected");
+  if (predictions[1].probability.toFixed(2) > 0.85) {
+    addLog(predictions[1].className + " detected");
   }
 }
 
