@@ -163,6 +163,7 @@ async function run() {
   await faceapi.nets.ssdMobilenetv1.loadFromUri('https://propview.ap-south-1.linodeobjects.com/');
   addLog("-x- Face Recognistion model loaded");
   objectModel = await tmImage.load(modelURL2, metadataURL2);
+  // objectModel = await cocoSsd.load();
   addLog("-x- Object model loaded");
   spoofModel = await tmImage.load(modelURL, metadataURL);
   maxPredictions = spoofModel.getTotalClasses();
@@ -349,12 +350,15 @@ async function CheckObject() {
   //   console.log(obj);
   // });
   console.log(predictions);
-  if (predictions[0].probability.toFixed(2) > 0.90) {
-    addLog(predictions[0].className + " detected");
+  if(predictions[2].probability.toFixed(2) < 0.34){
+    if (predictions[0].probability.toFixed(2) > predictions[1].probability.toFixed(2)) {
+      addLog(predictions[0].className + " detected");
+    }
+    else{
+      addLog(predictions[1].className + " detected");
+    }
   }
-  if (predictions[1].probability.toFixed(2) > 0.95) {
-    addLog(predictions[1].className + " detected");
-  }
+  
 }
 
 async function CheckSpoof() {
