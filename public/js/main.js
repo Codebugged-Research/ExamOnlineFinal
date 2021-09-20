@@ -349,10 +349,10 @@ async function CheckObject() {
   //   console.log(obj);
   // });
   console.log(predictions);
-  if (predictions[0].probability.toFixed(2) > 0.75) {
+  if (predictions[0].probability.toFixed(2) > 0.90) {
     addLog(predictions[0].className + " detected");
   }
-  if (predictions[1].probability.toFixed(2) > 0.85) {
+  if (predictions[1].probability.toFixed(2) > 0.95) {
     addLog(predictions[1].className + " detected");
   }
 }
