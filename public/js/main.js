@@ -321,7 +321,7 @@ async function CheckFace() {
     .withFaceDescriptors()
 
   if (!results.length) {
-    addLog("-x- no frame for face");
+    addLog("candidate looking outside the screen");
   }
 
   if (results.length > 1) {
