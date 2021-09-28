@@ -51,26 +51,26 @@ let capturedStream;
 let camera;
 
 window.onload = async function () {
-  webgazer.params.showVideoPreview = true;
-  await webgazer.setRegression('ridge')
-    .setGazeListener(function (data, clock) {
-    })
-    .saveDataAcrossSessions(true)
-    .begin();
-  webgazer.showVideoPreview(true)
-    .showPredictionPoints(true)
-    .applyKalmanFilter(true);
+  // webgazer.params.showVideoPreview = true;
+  // await webgazer.setRegression('ridge')
+  //   .setGazeListener(function (data, clock) {
+  //   })
+  //   .saveDataAcrossSessions(true)
+  //   .begin();
+  // webgazer.showVideoPreview(true)
+  //   .showPredictionPoints(true)
+  //   .applyKalmanFilter(true);
 
-  var setup = function () {
+  // var setup = function () {
 
-    //Set up the main canvas. The main canvas is used to calibrate the webgazer.
-    var canvas = document.getElementById("plotting_canvas");
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    canvas.style.position = 'fixed';
-  };
-  setup();
-
+  //   //Set up the main canvas. The main canvas is used to calibrate the webgazer.
+  //   var canvas = document.getElementById("plotting_canvas");
+  //   canvas.width = window.innerWidth;
+  //   canvas.height = window.innerHeight;
+  //   canvas.style.position = 'fixed';
+  // };
+  // setup();
+  start();
 };
 
 window.saveDataAcrossSessions = true;
@@ -88,13 +88,13 @@ addLog = (data) => {
 }
 
 async function start() {
-  webgazer.pause();
-  webgazer.params.showVideoPreview = false;
-  $('#webgazerVideoContainer').remove();
+  // webgazer.pause();
+  // webgazer.params.showVideoPreview = false;
+  // $('#webgazerVideoContainer').remove();
   resultElem.innerHTML = "";
   $('#tempImg').hide();
   inputurlEl.style = "display: box";
-  calibrationEye.style = "display: none";
+  // calibrationEye.style = "display: none";
 }
 
 async function loadReference() {
@@ -121,13 +121,13 @@ async function stop() {
 async function proct() {
   addLog("-x- Procting started");
   addLog("-x- Live webcam picture captured");
-  webgazer.resume();
+  // webgazer.resume();
 
   //start monitoring
   //face and person
   faceCheck = setInterval(async () => { await CheckFace(); }, faceCheckInterval);
   //object
-  objectCheck = setInterval(async () => { await CheckObject(); }, objectCheckInterval);
+  // objectCheck = setInterval(async () => { await CheckObject(); }, objectCheckInterval);
   //spoof
   spoofCheck = setInterval(async () => { await CheckSpoof(); }, spoofCheckInterval);
   // lip  
@@ -157,7 +157,8 @@ async function run() {
   const modelURL = URL + "model.json";
   const metadataURL = URL + "metadata.json";
   const modelURL2 = URL2 + "model.json";
-  const metadataURL2 = URL2 + "metadata.json";
+  const metadataURL2 = URL2 + "metadata.json";  
+  addLog("-x- Fetching Models");
   await faceapi.loadFaceLandmarkModel('https://propview.ap-south-1.linodeobjects.com/');
   await faceapi.loadFaceRecognitionModel('https://propview.ap-south-1.linodeobjects.com/');
   await faceapi.nets.ssdMobilenetv1.loadFromUri('https://propview.ap-south-1.linodeobjects.com/');
@@ -165,8 +166,7 @@ async function run() {
   objectModel = await tmImage.load(modelURL2, metadataURL2);
   // objectModel = await cocoSsd.load();
   addLog("-x- Object model loaded");
-  spoofModel = await tmImage.load(modelURL, metadataURL);
-  maxPredictions = spoofModel.getTotalClasses();
+  spoofModel = await tf.loadGraphModel("./public/spoof2/model.json");
   addLog("-x- Spoof model loaded");
   faceMesh = new FaceMesh({
     locateFile: (file) => {
@@ -327,6 +327,7 @@ async function CheckFace() {
   if (results.length > 1) {
     addLog("More than 1 person detected");
   }
+  let counter = 0;
 
   results.forEach(({ detection, descriptor }) => {
     const label = faceMatcher.findBestMatch(descriptor).toString()
@@ -335,9 +336,13 @@ async function CheckFace() {
     let length = ouputLabel.length;
     let length2 = inputLabel.length;
     if (inputLabel.substring(0, length2 - 3) === ouputLabel.substring(0, length - 6)) {
-      addLog("Candidate present");
+      // addLog("Candidate present");
     } else {
-      addLog("Candidate absent");
+      counter ++;
+      if(counter === 3) {
+        addLog("Candidate absent");
+        counter = 0;
+      }
     }
 
   })
@@ -350,20 +355,26 @@ async function CheckObject() {
   //   console.log(obj);
   // });
   console.log(predictions);
-  if(predictions[2].probability.toFixed(2) < 0.34){
+  if (predictions[2].probability.toFixed(2) < 0.34) {
     if (predictions[0].probability.toFixed(2) > predictions[1].probability.toFixed(2)) {
       addLog(predictions[0].className + " detected");
     }
-    else{
+    else {
       addLog(predictions[1].className + " detected");
     }
   }
-  
+
 }
 
 async function CheckSpoof() {
-  const prediction = await spoofModel.predict(videoElem);
-  if (prediction[1].probability.toFixed(2) > 0.75) {
+  const tfImg = tf.browser.fromPixels(videoElem).resizeNearestNeighbor([224, 224])
+    .toFloat()
+    .expandDims();
+  const prediction = await spoofModel.predict(tfImg);
+  const values = prediction.dataSync();
+  const arr = Array.from(values);
+  console.log(arr);
+  if (arr[1].toFixed(2) > 0.80) {
     addLog("spoof detected");
   }
 }
