@@ -160,7 +160,7 @@
             }
 
             var dist = distHolder[0] - distHolder[1];
-            if (dist > 0.010) {
+            if (dist > 0.015 && !pauselip) {
                 let li = document.createElement("li");
                 li.appendChild(document.createTextNode("Candidate is talking"));
                 resultElem.appendChild(li);

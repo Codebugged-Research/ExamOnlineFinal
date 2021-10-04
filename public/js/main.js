@@ -7,6 +7,8 @@ const calibrationEye = document.getElementById("calibration_eye");
 const logbox = document.getElementById("logbox");
 const QueryImageCapture = document.getElementById("QueryImageCapture");
 const startProctoringbtn = document.getElementById("startProctoring");
+const resumeProctoringbtn = document.getElementById("resumeProctoring");
+const pauseProctoringbtn = document.getElementById("pauseProctoring");
 const stopProctoringbtn = document.getElementById("stopProctoring");
 const inputImgEl = document.createElement("img");
 const queryImgEl = document.createElement("img");
@@ -118,6 +120,25 @@ async function stop() {
   // await camera.stop();
   location.reload();
 }
+
+
+async function resume(){
+  pauselip = false;
+  await proct();
+  resumeProctoringbtn.style = "display: none";
+  pauseProctoringbtn.style = "display: box";
+}
+let pauselip = false;
+async function pause(){
+  await clearInterval(faceCheck);
+  // await clearInterval(objectCheck);
+  await clearInterval(spoofCheck);
+  // await camera.stop();
+  pauselip = true;
+  pauseProctoringbtn.style = "display: none";
+  resumeProctoringbtn.style = "display: box";
+}
+
 async function proct() {
   addLog("-x- Procting started");
   addLog("-x- Live webcam picture captured");
@@ -152,6 +173,8 @@ async function uploadRefImage(e) {
 
 //actual detection
 async function run() {
+  pauseProctoringbtn.addEventListener('click', async function (ev) {await pause();});
+  resumeProctoringbtn.addEventListener('click', async function (ev) {await resume();});
   addLog("-x- Fetching Models");
   await faceapi.loadFaceLandmarkModel('https://propview.ap-south-1.linodeobjects.com/');
   await faceapi.loadFaceRecognitionModel('https://propview.ap-south-1.linodeobjects.com/');
@@ -271,6 +294,7 @@ async function updateQueryImageResults() {
         //start monitoring        
         startProctoringbtn.style = "display: none";
         stopProctoringbtn.style = "display: box";
+        pauseProctoringbtn.style = "display: box";
         stopProctoringbtn.addEventListener('click', async function (ev) {
           //stop monitoring        
           await stop();
