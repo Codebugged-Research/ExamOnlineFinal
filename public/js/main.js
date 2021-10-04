@@ -152,20 +152,14 @@ async function uploadRefImage(e) {
 
 //actual detection
 async function run() {
-  const URL = "./public/spoof/"
-  const URL2 = "./public/object/"
-  const modelURL = URL + "model.json";
-  const metadataURL = URL + "metadata.json";
-  const modelURL2 = URL2 + "model.json";
-  const metadataURL2 = URL2 + "metadata.json";  
   addLog("-x- Fetching Models");
   await faceapi.loadFaceLandmarkModel('https://propview.ap-south-1.linodeobjects.com/');
   await faceapi.loadFaceRecognitionModel('https://propview.ap-south-1.linodeobjects.com/');
   await faceapi.nets.ssdMobilenetv1.loadFromUri('https://propview.ap-south-1.linodeobjects.com/');
   addLog("-x- Face Recognistion model loaded");
-  objectModel = await tmImage.load(modelURL2, metadataURL2);
+  // objectModel = await tmImage.load(modelURL2, metadataURL2);
   // objectModel = await cocoSsd.load();
-  addLog("-x- Object model loaded");
+  // addLog("-x- Object model loaded");
   spoofModel = await tf.loadGraphModel("./public/spoof2/model.json");
   addLog("-x- Spoof model loaded");
   faceMesh = new FaceMesh({
@@ -308,6 +302,7 @@ function onResults(results) {
 }
 
 let counter = 0;
+let counter2 = 0;
 //check face during exam
 async function CheckFace() {
   takepicture(liveImgEl);
@@ -321,13 +316,16 @@ async function CheckFace() {
     .withFaceDescriptors()
 
   if (!results.length) {
-    addLog("candidate looking outside the screen");
+    counter2++;
+    if(counter2 === 3){
+      addLog("candidate looking outside the screen");
+      counter2 = 0;
+    }
   }
 
   if (results.length > 1) {
     addLog("More than 1 person detected");
   }
-  let counter = 0;
 
   results.forEach(({ detection, descriptor }) => {
     const label = faceMatcher.findBestMatch(descriptor).toString()
@@ -338,8 +336,8 @@ async function CheckFace() {
     if (inputLabel.substring(0, length2 - 3) === ouputLabel.substring(0, length - 6)) {
       // addLog("Candidate present");
     } else {
-      counter ++;
-      if(counter === 3) {
+      counter++;
+      if (counter === 3) {
         addLog("Candidate absent");
         counter = 0;
       }
@@ -350,20 +348,15 @@ async function CheckFace() {
 
 //check for objects during exam
 async function CheckObject() {
-  const predictions = await objectModel.predict(videoElem);
-  // predictions.forEach((obj)=>{
-  //   console.log(obj);
-  // });
-  console.log(predictions);
-  if (predictions[2].probability.toFixed(2) < 0.34) {
-    if (predictions[0].probability.toFixed(2) > predictions[1].probability.toFixed(2)) {
-      addLog(predictions[0].className + " detected");
+  predictions = objectModel.detect(videoElem);
+  predictions.forEach(prediction => {
+    if (prediction.class === "cell phone") {
+      addLog("cellphone detected");
     }
-    else {
-      addLog(predictions[1].className + " detected");
+    if (prediction.class === "book") {
+      addLog("book detected");
     }
-  }
-
+  });
 }
 
 async function CheckSpoof() {
@@ -373,8 +366,7 @@ async function CheckSpoof() {
   const prediction = await spoofModel.predict(tfImg);
   const values = prediction.dataSync();
   const arr = Array.from(values);
-  console.log(arr);
-  if (arr[1].toFixed(2) > 0.80) {
+  if (arr[1].toFixed(2) > 0.85) {
     addLog("spoof detected");
   }
 }
@@ -383,11 +375,11 @@ async function checkLipTracker() {
   await camera.start();
 }
 
-function resize() {
-  var canvas = document.getElementById('plotting_canvas');
-  var context = canvas.getContext('2d');
-  context.clearRect(0, 0, canvas.width, canvas.height);
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-};
-window.addEventListener('resize', resize, false);
+// function resize() {
+//   var canvas = document.getElementById('plotting_canvas');
+//   var context = canvas.getContext('2d');
+//   context.clearRect(0, 0, canvas.width, canvas.height);
+//   canvas.width = window.innerWidth;
+//   canvas.height = window.innerHeight;
+// };
+// window.addEventListener('resize', resize, false);
