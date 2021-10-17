@@ -375,25 +375,28 @@ const labelMap = {
 }
 //check for objects during exam
 async function CheckObject() {
-  const img = tf.browser.fromPixels(videoElem);
-  const resized = tf.image.resizeBilinear(img, [640, 640]);
-  const casted = resized.cast("int32");
-  const expanded = casted.expandDims(0);
-  const obj = await objectModel.executeAsync(expanded);
+  let img = tf.browser.fromPixels(videoElem);
+  let resized = tf.image.resizeBilinear(img, [640, 640]);
+  let casted = resized.cast("int32");
+  let expanded = casted.expandDims(0);
+  let obj = await objectModel.executeAsync(expanded);
 
-  const boxes = await obj[6].array();
-  const classes = await obj[2].array();
-  const scores = await obj[3].array();
-  drawRect(
-    boxes[0],
-    classes[0],
-    scores[0],
-);
-  tf.dispose(img);
-  tf.dispose(resized);
-  tf.dispose(casted);
-  tf.dispose(expanded);
-  tf.dispose(obj);
+  let boxes = await obj[6].array();
+  let classes = await obj[2].array();
+  let scores = await obj[3].array();
+  boxes = boxes[0];
+  classes = classes[0];
+  scores = scores[0];
+  for (let i = 0; i < boxes.length; i++) {
+    if (classes[i] === 1 && scores[i] > 0.4) {
+      console.log("Book" + Math.round(scores[i] * 100) / 100,);
+      addLog("Book detected");break;
+    }
+    else if (classes[i] === 2 && scores[i] > 0.6) {
+      console.log("Phone" + Math.round(scores[i] * 100) / 100,);
+      addLog("Phone detected");break;
+    }
+  }
 }
 
 async function CheckSpoof() {
@@ -406,11 +409,6 @@ async function CheckSpoof() {
   if (arr[1].toFixed(2) > 0.98) {
     addLog("spoof detected");
   }
-  
-  tf.dispose(tfImg);
-  tf.dispose(prediction);
-  tf.dispose(values);
-  tf.dispose(arr);
 }
 
 async function checkLipTracker() {
@@ -419,18 +417,5 @@ async function checkLipTracker() {
 
 
 drawRect = (boxes, classes, scores) => {
-  for (let i = 0; i < boxes.length; i++) {
-      if (classes[i] === 1) {
-          if (scores[i] > 0.6) {
-              console.log("Book" + Math.round(scores[i] * 100) / 100,);    
-              addLog("Book detected");          
-          }
-      } 
-      if (classes[i] === 2) {
-          if (scores[i] > 0.75) {
-              console.log("Phone" + Math.round(scores[i] * 100) / 100,);  
-              addLog("Phone detected");          
-          }
-      }
-  }
+
 }
