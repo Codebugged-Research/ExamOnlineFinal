@@ -407,7 +407,7 @@ async function CheckSpoof() {
   const arr = Array.from(values);
   const th = arr[1].toFixed(2)
   if (arr[1].toFixed(2) > 0.98) {
-    addLog("spoof detected",th);
+    addLog("spoof detected"+str(th));
   }
   tf.dispose(tfImg);
   tf.dispose(prediction);
