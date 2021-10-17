@@ -28,7 +28,7 @@ let inputLabel;
 let inputScore;
 let ouputLabel;
 let ouputScore;
-const height = 480;
+const height = 640;
 const width = 640;
 
 //model load
@@ -38,8 +38,8 @@ let lipModel;
 
 //intervals
 faceCheckInterval = 1000;
-objectCheckInterval = 800;
-spoofCheckInterval = 1000;
+objectCheckInterval = 1000;
+spoofCheckInterval = 3000;
 lipTrackerInterval = 1000;
 
 //interval controller
@@ -122,16 +122,16 @@ async function stop() {
 }
 
 
-async function resume(){
+async function resume() {
   pauselip = false;
   await proct();
   resumeProctoringbtn.style = "display: none";
   pauseProctoringbtn.style = "display: box";
 }
 let pauselip = false;
-async function pause(){
+async function pause() {
   await clearInterval(faceCheck);
-  // await clearInterval(objectCheck);
+  await clearInterval(objectCheck);
   await clearInterval(spoofCheck);
   // await camera.stop();
   pauselip = true;
@@ -148,7 +148,7 @@ async function proct() {
   //face and person
   faceCheck = setInterval(async () => { await CheckFace(); }, faceCheckInterval);
   //object
-  // objectCheck = setInterval(async () => { await CheckObject(); }, objectCheckInterval);
+  objectCheck = setInterval(async () => { await CheckObject(); }, objectCheckInterval);
   //spoof
   spoofCheck = setInterval(async () => { await CheckSpoof(); }, spoofCheckInterval);
   // lip  
@@ -173,16 +173,15 @@ async function uploadRefImage(e) {
 
 //actual detection
 async function run() {
-  pauseProctoringbtn.addEventListener('click', async function (ev) {await pause();});
-  resumeProctoringbtn.addEventListener('click', async function (ev) {await resume();});
+  pauseProctoringbtn.addEventListener('click', async function (ev) { await pause(); });
+  resumeProctoringbtn.addEventListener('click', async function (ev) { await resume(); });
   addLog("-x- Fetching Models");
   await faceapi.loadFaceLandmarkModel('https://propview.ap-south-1.linodeobjects.com/');
   await faceapi.loadFaceRecognitionModel('https://propview.ap-south-1.linodeobjects.com/');
   await faceapi.nets.ssdMobilenetv1.loadFromUri('https://propview.ap-south-1.linodeobjects.com/');
   addLog("-x- Face Recognistion model loaded");
-  // objectModel = await tmImage.load(modelURL2, metadataURL2);
-  // objectModel = await cocoSsd.load();
-  // addLog("-x- Object model loaded");
+  objectModel = await tf.loadGraphModel("./public/object/model.json");
+  addLog("-x- Object model loaded");
   spoofModel = await tf.loadGraphModel("./public/spoof2/model.json");
   addLog("-x- Spoof model loaded");
   faceMesh = new FaceMesh({
@@ -341,7 +340,7 @@ async function CheckFace() {
 
   if (!results.length) {
     counter2++;
-    if(counter2 === 3){
+    if (counter2 === 3) {
       addLog("candidate looking outside the screen");
       counter2 = 0;
     }
@@ -361,7 +360,7 @@ async function CheckFace() {
       // addLog("Candidate present");
     } else {
       counter++;
-      if (counter === 3) {
+      if (counter === 15) {
         addLog("Candidate absent");
         counter = 0;
       }
@@ -370,17 +369,31 @@ async function CheckFace() {
   })
 }
 
+const labelMap = {
+  1: { name: 'Book', color: 'red' },
+  2: { name: 'Phone', color: 'yellow' },
+}
 //check for objects during exam
 async function CheckObject() {
-  predictions = objectModel.detect(videoElem);
-  predictions.forEach(prediction => {
-    if (prediction.class === "cell phone") {
-      addLog("cellphone detected");
-    }
-    if (prediction.class === "book") {
-      addLog("book detected");
-    }
-  });
+  const img = tf.browser.fromPixels(videoElem);
+  const resized = tf.image.resizeBilinear(img, [640, 640]);
+  const casted = resized.cast("int32");
+  const expanded = casted.expandDims(0);
+  const obj = await objectModel.executeAsync(expanded);
+
+  const boxes = await obj[6].array();
+  const classes = await obj[2].array();
+  const scores = await obj[3].array();
+  drawRect(
+    boxes[0],
+    classes[0],
+    scores[0],
+);
+  tf.dispose(img);
+  tf.dispose(resized);
+  tf.dispose(casted);
+  tf.dispose(expanded);
+  tf.dispose(obj);
 }
 
 async function CheckSpoof() {
@@ -390,20 +403,34 @@ async function CheckSpoof() {
   const prediction = await spoofModel.predict(tfImg);
   const values = prediction.dataSync();
   const arr = Array.from(values);
-  if (arr[1].toFixed(2) > 0.85) {
+  if (arr[1].toFixed(2) > 0.98) {
     addLog("spoof detected");
   }
+  
+  tf.dispose(tfImg);
+  tf.dispose(prediction);
+  tf.dispose(values);
+  tf.dispose(arr);
 }
 
 async function checkLipTracker() {
   await camera.start();
 }
 
-// function resize() {
-//   var canvas = document.getElementById('plotting_canvas');
-//   var context = canvas.getContext('2d');
-//   context.clearRect(0, 0, canvas.width, canvas.height);
-//   canvas.width = window.innerWidth;
-//   canvas.height = window.innerHeight;
-// };
-// window.addEventListener('resize', resize, false);
+
+drawRect = (boxes, classes, scores) => {
+  for (let i = 0; i < boxes.length; i++) {
+      if (classes[i] === 1) {
+          if (scores[i] > 0.6) {
+              console.log("Book" + Math.round(scores[i] * 100) / 100,);    
+              addLog("Book detected");          
+          }
+      } 
+      if (classes[i] === 2) {
+          if (scores[i] > 0.75) {
+              console.log("Phone" + Math.round(scores[i] * 100) / 100,);  
+              addLog("Phone detected");          
+          }
+      }
+  }
+}
