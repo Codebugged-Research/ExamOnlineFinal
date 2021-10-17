@@ -75,12 +75,6 @@ window.onload = async function () {
   start();
 };
 
-window.saveDataAcrossSessions = true;
-
-window.onbeforeunload = function () {
-  webgazer.end();
-}
-
 //event logger
 addLog = (data) => {
   let li = document.createElement("li");
@@ -388,11 +382,11 @@ async function CheckObject() {
   classes = classes[0];
   scores = scores[0];
   for (let i = 0; i < boxes.length; i++) {
-    if (classes[i] === 1 && scores[i] > 0.4) {
+    if (classes[i] === 1 && scores[i] > 0.7) {
       console.log("Book" + Math.round(scores[i] * 100) / 100,);
       addLog("Book detected"); break;
     }
-    else if (classes[i] === 2 && scores[i] > 0.6) {
+    else if (classes[i] === 2 && scores[i] > 0.8) {
       console.log("Phone" + Math.round(scores[i] * 100) / 100,);
       addLog("Phone detected"); break;
     }
