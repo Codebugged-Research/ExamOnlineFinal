@@ -390,13 +390,18 @@ async function CheckObject() {
   for (let i = 0; i < boxes.length; i++) {
     if (classes[i] === 1 && scores[i] > 0.4) {
       console.log("Book" + Math.round(scores[i] * 100) / 100,);
-      addLog("Book detected");break;
+      addLog("Book detected"); break;
     }
     else if (classes[i] === 2 && scores[i] > 0.6) {
       console.log("Phone" + Math.round(scores[i] * 100) / 100,);
-      addLog("Phone detected");break;
+      addLog("Phone detected"); break;
     }
   }
+  tf.dispose(img);
+  tf.dispose(resized);
+  tf.dispose(casted);
+  tf.dispose(expanded);
+  tf.dispose(obj);
 }
 
 async function CheckSpoof() {
@@ -409,13 +414,12 @@ async function CheckSpoof() {
   if (arr[1].toFixed(2) > 0.98) {
     addLog("spoof detected");
   }
+  tf.dispose(tfImg);
+  tf.dispose(prediction);
+  tf.dispose(values);
+  tf.dispose(arr);
 }
 
 async function checkLipTracker() {
   await camera.start();
-}
-
-
-drawRect = (boxes, classes, scores) => {
-
 }
