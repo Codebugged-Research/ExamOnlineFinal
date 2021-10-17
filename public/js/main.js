@@ -406,7 +406,7 @@ async function CheckSpoof() {
   const values = prediction.dataSync();
   const arr = Array.from(values);
   if (arr[1].toFixed(2) > 0.98) {
-    addLog("spoof detected");
+    addLog("spoof detected",arr[1].toFixed(2));
   }
   tf.dispose(tfImg);
   tf.dispose(prediction);
