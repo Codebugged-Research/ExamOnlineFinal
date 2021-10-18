@@ -42,6 +42,11 @@ objectCheckInterval = 1000;
 spoofCheckInterval = 3000;
 lipTrackerInterval = 1000;
 
+//threshold
+spoofThresshold = 0.98;
+bookThresshold = 0.6;
+phoneThresshold = 0.65;
+
 //interval controller
 let faceCheck;
 let objectCheck;
@@ -335,7 +340,7 @@ async function CheckFace() {
   if (!results.length) {
     counter2++;
     if (counter2 === 3) {
-      addLog("candidate looking outside the screen");
+      console.log("candidate looking outside the screen");
       counter2 = 0;
     }
   }
@@ -384,11 +389,11 @@ async function CheckObject() {
   for (let i = 0; i < boxes.length; i++) {
     if (classes[i] === 1 && scores[i] > 0.7) {
       console.log("Book" + Math.round(scores[i] * 100) / 100,);
-      addLog("Book detected"); break;
+      addLog("Book detected" + (Math.round(scores[i] * 100) / 100)); break;
     }
-    else if (classes[i] === 2 && scores[i] > 0.8) {
+    else if (classes[i] === 2 && scores[i] > 0.65) {
       console.log("Phone" + Math.round(scores[i] * 100) / 100,);
-      addLog("Phone detected"); break;
+      addLog("Phone detected" + (Math.round(scores[i] * 100) / 100)); break;
     }
   }
   tf.dispose(img);
@@ -406,7 +411,7 @@ async function CheckSpoof() {
   const values = prediction.dataSync();
   const arr = Array.from(values);
   if (arr[1].toFixed(2) > 0.98) {
-    addLog("spoof detected");
+    addLog("spoof detected" + arr[1].toFixed(2));
   }
   tf.dispose(tfImg);
   tf.dispose(prediction);
