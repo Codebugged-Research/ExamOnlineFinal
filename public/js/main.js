@@ -147,7 +147,7 @@ async function proct() {
   //face and person
   faceCheck = setInterval(async () => { await CheckFace(); }, faceCheckInterval);
   //object
-  objectCheck = setInterval(async () => { await CheckObject(); }, objectCheckInterval);
+  // objectCheck = setInterval(async () => { await CheckObject(); }, objectCheckInterval);
   //spoof
   spoofCheck = setInterval(async () => { await CheckSpoof(); }, spoofCheckInterval);
   // lip  
@@ -179,8 +179,8 @@ async function run() {
   await faceapi.loadFaceRecognitionModel('https://propview.ap-south-1.linodeobjects.com/');
   await faceapi.nets.ssdMobilenetv1.loadFromUri('https://propview.ap-south-1.linodeobjects.com/');
   addLog("-x- Face Recognistion model loaded");
-  objectModel = await tf.loadGraphModel("./public/object/model.json");
-  addLog("-x- Object model loaded");
+  // objectModel = await tf.loadGraphModel("./public/object/model.json");
+  // addLog("-x- Object model loaded");
   spoofModel = await tf.loadGraphModel("./public/spoof2/model.json");
   addLog("-x- Spoof model loaded");
   faceMesh = new FaceMesh({
