@@ -341,6 +341,7 @@ async function CheckFace() {
     counter2++;
     if (counter2 === 5) {
       console.log("candidate looking outside the screen");
+      addLog("candidate is absent");
       counter2 = 0;
     }
   }
