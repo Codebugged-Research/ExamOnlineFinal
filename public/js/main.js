@@ -149,7 +149,7 @@ async function proct() {
   //object
   // objectCheck = setInterval(async () => { await CheckObject(); }, objectCheckInterval);
   //spoof
-  spoofCheck = setInterval(async () => { await CheckSpoof(); }, spoofCheckInterval);
+  // spoofCheck = setInterval(async () => { await CheckSpoof(); }, spoofCheckInterval);
   // lip  
   checkLipTracker();
 }
@@ -181,8 +181,8 @@ async function run() {
   addLog("-x- Face Recognistion model loaded");
   // objectModel = await tf.loadGraphModel("./public/object/model.json");
   // addLog("-x- Object model loaded");
-  spoofModel = await tf.loadGraphModel("./public/spoof2/model.json");
-  addLog("-x- Spoof model loaded");
+  // spoofModel = await tf.loadGraphModel("./public/spoof2/model.json");
+  // addLog("-x- Spoof model loaded");
   faceMesh = new FaceMesh({
     locateFile: (file) => {
       return `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`;
