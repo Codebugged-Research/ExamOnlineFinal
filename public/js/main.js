@@ -181,6 +181,8 @@ async function run() {
   addLog("-x- Face Recognistion model loaded");
   // objectModel = await tf.loadGraphModel("./public/object/model.json");
   // addLog("-x- Object model loaded");
+  // spoofModel = await tf.loadGraphModel("./public/spoof2/model.json");
+  // addLog("-x- Spoof model loaded");
   faceMesh = new FaceMesh({
     locateFile: (file) => {
       return `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`;
@@ -343,6 +345,10 @@ async function CheckFace() {
     }
   }
 
+  if(results.length  == 0){
+    addLog("Candidate absent");
+  }
+
   if (results.length > 1) {
     addLog("More than 1 person detected");
   }
@@ -354,11 +360,11 @@ async function CheckFace() {
     let length = ouputLabel.length;
     let length2 = inputLabel.length;
     if (inputLabel.substring(0, length2 - 3) === ouputLabel.substring(0, length - 6)) {
-      // addLog("Candidate present");
+      console.log("Candidate present");
     } else {
       counter++;
-      if (counter === 15) {
-        addLog("Candidate absent");
+      if (counter === 3) {
+        addLog("Candidate absent or wrong person");
         counter = 0;
       }
     }
