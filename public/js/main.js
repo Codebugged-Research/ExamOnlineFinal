@@ -339,14 +339,10 @@ async function CheckFace() {
 
   if (!results.length) {
     counter2++;
-    if (counter2 === 3) {
+    if (counter2 === 5) {
       console.log("candidate looking outside the screen");
       counter2 = 0;
     }
-  }
-
-  if(results.length  == 0){
-    addLog("Candidate absent");
   }
 
   if (results.length > 1) {
@@ -363,7 +359,7 @@ async function CheckFace() {
       console.log("Candidate present");
     } else {
       counter++;
-      if (counter === 3) {
+      if (counter === 5) {
         addLog("Candidate absent or wrong person");
         counter = 0;
       }
