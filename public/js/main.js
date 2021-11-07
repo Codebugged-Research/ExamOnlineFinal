@@ -100,7 +100,7 @@ async function loadReference() {
 async function stop() {
   LoginElem.style = "display: box";
   await clearInterval(faceCheck);
-  // await clearInterval(objectCheck);
+  await clearInterval(objectCheck);
   await clearInterval(spoofCheck);
   // await camera.stop();
   location.reload();
@@ -132,15 +132,15 @@ async function proct() {
 
   //start monitoring
   //face and person
-  // faceCheck = setInterval(async () => { await CheckFace(); }, faceCheckInterval);
+  faceCheck = setInterval(async () => { await CheckFace(); }, faceCheckInterval);
   //object
-  // objectCheck = setInterval(async () => { await CheckObject(); }, objectCheckInterval);
+  objectCheck = setInterval(async () => { await CheckObject(); }, objectCheckInterval);
   //headpose
   headPose = setInterval(async () => { await CheckHeadPose(); }, headPoseInterval);
   //spoof
   // spoofCheck = setInterval(async () => { await CheckSpoof(); }, spoofCheckInterval);
   // lip  
-  // checkLipTracker();
+  checkLipTracker();
 }
 
 function Restart() {
@@ -412,7 +412,6 @@ async function CheckSpoof() {
 }
 
 async function CheckHeadPose() {
-  console.log(videoElem)
   const pose = await poseModel.estimateSinglePose(videoElem, imageScaleFactor, false, outputStride);
   let nsx = pose.keypoints[0].position.x;
   let nsy = pose.keypoints[0].position.y;
@@ -422,8 +421,6 @@ async function CheckHeadPose() {
   let rey = pose.keypoints[2].position.y;
   const distToLeftEyeX = Math.abs(lex - nsx);
   const distToRightEyeX = Math.abs(rex - nsx);
-  console.log(pose.keypoints)
-  console.log(distToLeftEyeX, distToRightEyeX);
   if ((distToRightEyeX - distToLeftEyeX) > 10) {
     console.log("Looking Left");
     addLog("Candidate is looking out of the screen (left)");
