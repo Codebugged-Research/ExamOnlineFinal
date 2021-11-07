@@ -13,6 +13,7 @@ const stopProctoringbtn = document.getElementById("stopProctoring");
 const inputImgEl = document.createElement("img");
 const queryImgEl = document.createElement("img");
 const liveImgEl = document.createElement("img");
+const liveImgElHead = document.createElement("img");
 const obejctDetectImageEl = document.createElement("img");
 
 const controls = window;
@@ -22,6 +23,11 @@ const mpFaceMesh = window;
 let maxPredictions;
 
 let photoUrl = "https://propview.ap-south-1.linodeobjects.com/sambit.jpg";
+
+//headpose
+const imageScaleFactor = 0.50;
+const flipHorizontal = true;
+const outputStride = 16;
 
 //for login
 let inputLabel;
@@ -35,17 +41,19 @@ const width = 640;
 let objectModel;
 let spoofModel;
 let lipModel;
+let poseModel;
 
 //intervals
 faceCheckInterval = 1000;
 objectCheckInterval = 1000;
 spoofCheckInterval = 3000;
 lipTrackerInterval = 1000;
+headPoseInterval = 1000;
 
 //threshold
 spoofThresshold = 0.98;
-bookThresshold = 0.6;
-phoneThresshold = 0.65;
+bookThresshold = 0.4;
+phoneThresshold = 0.4;
 
 //interval controller
 let faceCheck;
@@ -53,30 +61,12 @@ let objectCheck;
 let spoofCheck;
 let lipTrackCheck;
 let faceMesh;
+let headPose;
 
 let capturedStream;
 let camera;
 
 window.onload = async function () {
-  // webgazer.params.showVideoPreview = true;
-  // await webgazer.setRegression('ridge')
-  //   .setGazeListener(function (data, clock) {
-  //   })
-  //   .saveDataAcrossSessions(true)
-  //   .begin();
-  // webgazer.showVideoPreview(true)
-  //   .showPredictionPoints(true)
-  //   .applyKalmanFilter(true);
-
-  // var setup = function () {
-
-  //   //Set up the main canvas. The main canvas is used to calibrate the webgazer.
-  //   var canvas = document.getElementById("plotting_canvas");
-  //   canvas.width = window.innerWidth;
-  //   canvas.height = window.innerHeight;
-  //   canvas.style.position = 'fixed';
-  // };
-  // setup();
   start();
 };
 
@@ -89,13 +79,9 @@ addLog = (data) => {
 }
 
 async function start() {
-  // webgazer.pause();
-  // webgazer.params.showVideoPreview = false;
-  // $('#webgazerVideoContainer').remove();
   resultElem.innerHTML = "";
   $('#tempImg').hide();
   inputurlEl.style = "display: box";
-  // calibrationEye.style = "display: none";
 }
 
 async function loadReference() {
@@ -131,7 +117,8 @@ let pauselip = false;
 async function pause() {
   await clearInterval(faceCheck);
   await clearInterval(objectCheck);
-  await clearInterval(spoofCheck);
+  // await clearInterval(spoofCheck);
+  await clearInterval(headPose);
   // await camera.stop();
   pauselip = true;
   pauseProctoringbtn.style = "display: none";
@@ -145,13 +132,15 @@ async function proct() {
 
   //start monitoring
   //face and person
-  faceCheck = setInterval(async () => { await CheckFace(); }, faceCheckInterval);
+  // faceCheck = setInterval(async () => { await CheckFace(); }, faceCheckInterval);
   //object
   // objectCheck = setInterval(async () => { await CheckObject(); }, objectCheckInterval);
+  //headpose
+  headPose = setInterval(async () => { await CheckHeadPose(); }, headPoseInterval);
   //spoof
   // spoofCheck = setInterval(async () => { await CheckSpoof(); }, spoofCheckInterval);
   // lip  
-  checkLipTracker();
+  // checkLipTracker();
 }
 
 function Restart() {
@@ -179,8 +168,10 @@ async function run() {
   await faceapi.loadFaceRecognitionModel('https://propview.ap-south-1.linodeobjects.com/');
   await faceapi.nets.ssdMobilenetv1.loadFromUri('https://propview.ap-south-1.linodeobjects.com/');
   addLog("-x- Face Recognistion model loaded");
-  // objectModel = await tf.loadGraphModel("./public/object/model.json");
-  // addLog("-x- Object model loaded");
+  objectModel = await tf.loadGraphModel("./public/object/model.json");
+  addLog("-x- Object model loaded");
+  poseModel = await posenet.load();
+  addLog("-x- Head Pose model loaded");
   // spoofModel = await tf.loadGraphModel("./public/spoof2/model.json");
   // addLog("-x- Spoof model loaded");
   faceMesh = new FaceMesh({
@@ -381,18 +372,18 @@ async function CheckObject() {
   let expanded = casted.expandDims(0);
   let obj = await objectModel.executeAsync(expanded);
 
-  let boxes = await obj[6].array();
-  let classes = await obj[2].array();
-  let scores = await obj[3].array();
+  var boxes = await obj[2].array(); //
+  var classes = await obj[6].array(); //Classes  
+  var scores = await obj[3].array();
   boxes = boxes[0];
   classes = classes[0];
   scores = scores[0];
   for (let i = 0; i < boxes.length; i++) {
-    if (classes[i] === 1 && scores[i] > 0.7) {
+    if (classes[i] === 1 && scores[i] > bookThresshold) {
       console.log("Book" + Math.round(scores[i] * 100) / 100,);
       addLog("Book detected" + (Math.round(scores[i] * 100) / 100)); break;
     }
-    else if (classes[i] === 2 && scores[i] > 0.65) {
+    else if (classes[i] === 2 && scores[i] > phoneThresshold) {
       console.log("Phone" + Math.round(scores[i] * 100) / 100,);
       addLog("Phone detected" + (Math.round(scores[i] * 100) / 100)); break;
     }
@@ -418,6 +409,30 @@ async function CheckSpoof() {
   tf.dispose(prediction);
   tf.dispose(values);
   tf.dispose(arr);
+}
+
+async function CheckHeadPose() {
+  console.log(videoElem)
+  const pose = await poseModel.estimateSinglePose(videoElem, imageScaleFactor, false, outputStride);
+  let nsx = pose.keypoints[0].position.x;
+  let nsy = pose.keypoints[0].position.y;
+  let lex = pose.keypoints[1].position.x;
+  let ley = pose.keypoints[1].position.y;
+  let rex = pose.keypoints[2].position.x;
+  let rey = pose.keypoints[2].position.y;
+  const distToLeftEyeX = Math.abs(lex - nsx);
+  const distToRightEyeX = Math.abs(rex - nsx);
+  console.log(pose.keypoints)
+  console.log(distToLeftEyeX, distToRightEyeX);
+  if ((distToRightEyeX - distToLeftEyeX) > 10) {
+    console.log("Looking Left");
+    addLog("Candidate is looking out of the screen (left)");
+  } else if ((distToLeftEyeX - distToRightEyeX) > 10) {
+    console.log("Looking Right");
+    addLog("Candidate is looking out of the screen (right)");
+  } else {
+    console.log("Looking Straight");
+  }
 }
 
 async function checkLipTracker() {

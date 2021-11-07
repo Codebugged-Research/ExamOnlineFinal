@@ -7,15 +7,14 @@
     <link rel="stylesheet" href="./public/css/main.css" />
     <link rel="stylesheet" href="./public/css/style.css">
     <link rel="stylesheet" href="./public/css/bootstrap.min.css">
-    <title>Exam Online Final</title><script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.9.0/dist/tf.min.js"></script>
-    <!-- <script src="./public/js/webgazer.js"></script> -->
+    <title>Exam Online Final</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.9.0/dist/tf.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3/camera_utils.js"
         crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils@0.5/control_utils.js"
         crossorigin="anonymous"></script>
-
+    <script src="https://unpkg.com/@tensorflow-models/posenet"></script>
     <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.js"></script>
-    <!-- <script src="./public/js/face-api.js"></script> -->
     <script src="./public/js/commons.js"></script>
     <script src="./public/js/faceDetectionControls.js"></script>
     <script src="./public/js/drawing_utils.js"></script>
@@ -23,43 +22,10 @@
 
 
     <script src="./public/js/jquery.min.js"></script>
-    <!-- <script src="./public/js/bootstrap.min.js"></script>
-    <script src="./public/js/sweetalert.min.js"></script> -->
-    <!-- <script src="./public/js/calibration.js"></script>
-    <script src="./public/js/precision_calculation.js"></script>
-    <script src="./public/js/precision_store_points.js"></script> -->
 </head>
 
 <body id="body">
     <script src="./public/js/main.js" defer></script>
-    <!-- <div id="calibration_eye" style="display: box;">
-        <canvas id="plotting_canvas" width="500" height="500" style="cursor:crosshair;"></canvas>
-        <li id="Accuracy" style="float:right"><a>Not yet Calibrated</a></li>
-        <div class="calibrationDiv">
-            <input type="button" class="Calibration" id="Pt1"></input>
-            <input type="button" class="Calibration" id="Pt2"></input>
-            <input type="button" class="Calibration" id="Pt3"></input>
-            <input type="button" class="Calibration" id="Pt4"></input>
-            <input type="button" class="Calibration" id="Pt5"></input>
-            <input type="button" class="Calibration" id="Pt6"></input>
-            <input type="button" class="Calibration" id="Pt7"></input>
-            <input type="button" class="Calibration" id="Pt8"></input>
-            <input type="button" class="Calibration" id="Pt9"></input>
-        </div>
-
-        <div id="helpModal" class="modal fade" role="dialog">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-footer">
-                        (Write reason or a specific message) <br>
-                        <button type="button" id='start_calibration' class="btn btn-primary" data-dismiss="modal"
-                            onclick="Restart()">Calibrate</button>
-                    </div>
-                </div>
-
-            </div>
-        </div>
-    </div> -->
     <center>
         <div id="inputurl" style="display: none;">
             <h1>Upload Refence Image</h1><br>
