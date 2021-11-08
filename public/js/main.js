@@ -10,6 +10,7 @@ const startProctoringbtn = document.getElementById("startProctoring");
 const resumeProctoringbtn = document.getElementById("resumeProctoring");
 const pauseProctoringbtn = document.getElementById("pauseProctoring");
 const stopProctoringbtn = document.getElementById("stopProctoring");
+const downloadLogsbtn = document.getElementById("downloadLog");
 const inputImgEl = document.createElement("img");
 const queryImgEl = document.createElement("img");
 const liveImgEl = document.createElement("img");
@@ -76,6 +77,19 @@ addLog = (data) => {
   li.appendChild(document.createTextNode(data));
   resultElem.appendChild(li);
   logbox.scrollTop = logbox.scrollHeight;
+}
+
+function download(filename) {
+  var element = document.createElement('a');
+  element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(resultElem.innerText));
+  element.setAttribute('download', filename);
+
+  element.style.display = 'none';
+  document.body.appendChild(element);
+
+  element.click();
+
+  document.body.removeChild(element);
 }
 
 async function start() {
@@ -161,6 +175,7 @@ async function uploadRefImage(e) {
 
 //actual detection
 async function run() {
+  downloadLogsbtn.addEventListener("click", async function (ev) { download("logs.txt"); });
   pauseProctoringbtn.addEventListener('click', async function (ev) { await pause(); });
   resumeProctoringbtn.addEventListener('click', async function (ev) { await resume(); });
   addLog("-x- Fetching Models");
@@ -284,6 +299,7 @@ async function updateQueryImageResults() {
         startProctoringbtn.style = "display: none";
         stopProctoringbtn.style = "display: box";
         pauseProctoringbtn.style = "display: box";
+        downloadLogsbtn.style = "display: box";
         stopProctoringbtn.addEventListener('click', async function (ev) {
           //stop monitoring        
           await stop();
