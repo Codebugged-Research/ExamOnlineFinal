@@ -378,7 +378,7 @@ async function CheckFace() {
 
 const labelMap = {
   1: { name: 'Book', color: 'red' },
-  2: { name: 'Phone', color: 'yellow' },
+  3: { name: 'Phone', color: 'yellow' },
 }
 //check for objects during exam
 async function CheckObject() {
@@ -399,7 +399,7 @@ async function CheckObject() {
       console.log("Book" + Math.round(scores[i] * 100) / 100,);
       addLog("Book detected" + (Math.round(scores[i] * 100) / 100)); break;
     }
-    else if (classes[i] === 2 && scores[i] > phoneThresshold) {
+    else if (classes[i] === 3 && scores[i] > phoneThresshold) {
       console.log("Phone" + Math.round(scores[i] * 100) / 100,);
       addLog("Phone detected" + (Math.round(scores[i] * 100) / 100)); break;
     }
