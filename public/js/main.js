@@ -390,7 +390,7 @@ async function CheckObject() {
 
   var boxes = await obj[2].array(); //
   var classes = await obj[6].array(); //Classes  
-  var scores = await obj[3].array();
+  var scores = await obj[0].array();
   boxes = boxes[0];
   classes = classes[0];
   scores = scores[0];
