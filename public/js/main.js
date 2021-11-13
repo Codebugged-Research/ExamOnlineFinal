@@ -17,12 +17,6 @@ const liveImgEl = document.createElement("img");
 const liveImgElHead = document.createElement("img");
 const obejctDetectImageEl = document.createElement("img");
 
-const controls = window;
-const drawingUtils = window;
-const mpFaceMesh = window;
-
-let maxPredictions;
-
 let photoUrl = "https://propview.ap-south-1.linodeobjects.com/sambit.jpg";
 
 //headpose
@@ -37,6 +31,12 @@ let ouputLabel;
 let ouputScore;
 const height = 640;
 const width = 640;
+
+
+//lip
+let maxNumFaces = 1;
+let minDetectionConfidence = 0.5;
+let minTrackingConfidence = 0.5;
 
 //model load
 let objectModel;
@@ -56,6 +56,10 @@ spoofThresshold = 0.98;
 bookThresshold = 0.4;
 phoneThresshold = 0.4;
 
+//for face
+let counter = 0;
+let counter2 = 0;
+
 //interval controller
 let faceCheck;
 let objectCheck;
@@ -64,13 +68,13 @@ let lipTrackCheck;
 let faceMesh;
 let headPose;
 
-let capturedStream;
+//lip object
 let camera;
+let pauselip = false;
 
 window.onload = async function () {
   start();
 };
-
 //event logger
 addLog = (data) => {
   let li = document.createElement("li");
@@ -116,10 +120,8 @@ async function stop() {
   await clearInterval(faceCheck);
   await clearInterval(objectCheck);
   await clearInterval(spoofCheck);
-  // await camera.stop();
   location.reload();
 }
-
 
 async function resume() {
   pauselip = false;
@@ -127,13 +129,12 @@ async function resume() {
   resumeProctoringbtn.style = "display: none";
   pauseProctoringbtn.style = "display: box";
 }
-let pauselip = false;
+
 async function pause() {
   await clearInterval(faceCheck);
   await clearInterval(objectCheck);
   // await clearInterval(spoofCheck);
   await clearInterval(headPose);
-  // await camera.stop();
   pauselip = true;
   pauseProctoringbtn.style = "display: none";
   resumeProctoringbtn.style = "display: box";
@@ -142,7 +143,6 @@ async function pause() {
 async function proct() {
   addLog("-x- Procting started");
   addLog("-x- Live webcam picture captured");
-  // webgazer.resume();
 
   //start monitoring
   //face and person
@@ -171,8 +171,6 @@ async function uploadRefImage(e) {
   $('#tempImg').get(0).src = img.src;
   $('#tempImg').show();
 }
-
-
 //actual detection
 async function run() {
   downloadLogsbtn.addEventListener("click", async function (ev) { download("logs.txt"); });
@@ -195,9 +193,9 @@ async function run() {
     }
   });
   faceMesh.setOptions({
-    maxNumFaces: 1,
-    minDetectionConfidence: 0.5,
-    minTrackingConfidence: 0.5
+    maxNumFaces: maxNumFaces,
+    minDetectionConfidence:minDetectionConfidence,
+    minTrackingConfidence:minTrackingConfidence
   });
   faceMesh.onResults(onResults);
   camera = new Camera(videoElem, {
@@ -222,7 +220,6 @@ async function run() {
   }, false);
   return
 }
-
 //process refrence image
 async function updateReferenceImageResults(url) {
   inputImgEl.src = url;
@@ -256,7 +253,6 @@ async function updateReferenceImageResults(url) {
   }
   return
 }
-
 //capture query image
 function takepicture(imageElement) {
   const tempCanvas = document.createElement("canvas");
@@ -269,7 +265,6 @@ function takepicture(imageElement) {
   imageElement.style = "-webkit-transform: scaleX(-1); transform: scaleX(-1);"
   return
 }
-
 //face recognition for authetication
 async function updateQueryImageResults() {
   if (!faceMatcher) {
@@ -313,7 +308,6 @@ async function updateQueryImageResults() {
     }
   })
 }
-
 //lip draw
 function onResults(results) {
   const canvasElement = document.createElement('canvas');
@@ -329,9 +323,6 @@ function onResults(results) {
   }
   canvasCtx.restore();
 }
-
-let counter = 0;
-let counter2 = 0;
 //check face during exam
 async function CheckFace() {
   takepicture(liveImgEl);
@@ -375,7 +366,6 @@ async function CheckFace() {
 
   })
 }
-
 const labelMap = {
   1: { name: 'Book', color: 'red' },
   3: { name: 'Phone', color: 'yellow' },
