@@ -26,11 +26,11 @@ let maxPredictions;
 let photoUrl = "https://propview.ap-south-1.linodeobjects.com/sambit.jpg";
 
 //headpose
-const imageScaleFactor = 0.50;
-const flipHorizontal = true;
-const outputStride = 16;
+const imageScaleFactor = 0.50;// image resizing factor 
+const flipHorizontal = true; // flipping of video
+const outputStride = 16; //body lines
 
-//for login
+//for login gloabl  variable
 let inputLabel;
 let inputScore;
 let ouputLabel;
@@ -52,7 +52,7 @@ lipTrackerInterval = 1000;
 headPoseInterval = 1000;
 
 //threshold
-spoofThresshold = 0.98;
+// spoofThresshold = 0.98;
 bookThresshold = 0.4;
 phoneThresshold = 0.4;
 
